@@ -14,6 +14,7 @@ export default function LeaderboardPage() {
   const [session, setSessionState] = useState(undefined);
   const [teamTotals, setTeamTotals] = useState([]);
   const [topByGame, setTopByGame] = useState({});
+  const [roster, setRoster] = useState(null);
 
   useEffect(() => {
     const s = getSession();
@@ -44,6 +45,24 @@ export default function LeaderboardPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+
+    async function loadRoster() {
+      const res = await fetch(`/api/team?team=${session.team}`);
+      const data = await res.json();
+      if (!cancelled && data.ok) setRoster(data);
+    }
+
+    loadRoster();
+    const interval = setInterval(loadRoster, POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [session]);
+
   if (!session) {
     return <div className="center-screen">Loading…</div>;
   }
@@ -54,6 +73,45 @@ export default function LeaderboardPage() {
     <div className="shell">
       <TopBar session={session} />
       <div className="content">
+        <div className="lb-block">
+          <h2 className="section-title">Your Team — {roster?.team?.name || `Team ${session.team}`}</h2>
+          <p className="section-sub">
+            Only visible to you. Shows everyone on your team who has
+            submitted at least one score.
+          </p>
+          <div className="lb-table-wrap">
+            <table className="lb-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  {GAMES.map((g) => (
+                    <th key={g.id}>{g.name}</th>
+                  ))}
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(!roster || roster.players.length === 0) && (
+                  <tr>
+                    <td colSpan={GAMES.length + 2} style={{ color: "#a19a89" }}>
+                      No one on your team has played yet — be the first.
+                    </td>
+                  </tr>
+                )}
+                {roster?.players.map((p) => (
+                  <tr key={p.name}>
+                    <td>{p.name}</td>
+                    {GAMES.map((g) => (
+                      <td key={g.id}>{p.scores[g.id] || 0}</td>
+                    ))}
+                    <td className="score">{p.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <div className="lb-block">
           <h2 className="section-title">Team Standings — Level 14</h2>
           <p className="section-sub">Live — updates automatically every few seconds.</p>

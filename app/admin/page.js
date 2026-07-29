@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { GAMES } from "../../lib/config";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [teams, setTeams] = useState([]);
+  const [rosters, setRosters] = useState([]);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [paused, setPaused] = useState(false);
@@ -14,9 +16,10 @@ export default function AdminPage() {
   async function unlock(e) {
     e.preventDefault();
     setError("");
-    const [teamsRes, pauseRes] = await Promise.all([
+    const [teamsRes, pauseRes, rosterRes] = await Promise.all([
       fetch("/api/admin/teams", { headers: { "x-admin-password": password } }),
       fetch("/api/admin/pause", { headers: { "x-admin-password": password } }),
+      fetch("/api/admin/roster", { headers: { "x-admin-password": password } }),
     ]);
     const data = await teamsRes.json();
     if (!teamsRes.ok || !data.ok) {
@@ -24,8 +27,10 @@ export default function AdminPage() {
       return;
     }
     const pauseData = await pauseRes.json();
+    const rosterData = await rosterRes.json();
     setTeams(data.teams);
     if (pauseRes.ok && pauseData.ok) setPaused(pauseData.paused);
+    if (rosterRes.ok && rosterData.ok) setRosters(rosterData.rosters);
     setUnlocked(true);
   }
 
@@ -142,6 +147,52 @@ export default function AdminPage() {
       </div>
 
       {status && <p style={{ marginTop: 16 }}>{status}</p>}
+
+      <h2 className="section-title" style={{ marginTop: 48 }}>
+        Team rosters
+      </h2>
+      <p className="section-sub">
+        Everyone who has submitted at least one score, grouped by team.
+      </p>
+
+      {rosters.map((r) => (
+        <div className="lb-block" key={r.team.id}>
+          <h3 style={{ fontFamily: "var(--font-display)", color: "var(--maroon)", marginBottom: 8 }}>
+            {r.team.name} <span style={{ color: "#6b6355", fontSize: 14, fontFamily: "var(--font-mono)" }}>(Team {r.team.id})</span>
+          </h3>
+          <div className="lb-table-wrap">
+            <table className="lb-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  {GAMES.map((g) => (
+                    <th key={g.id}>{g.name}</th>
+                  ))}
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {r.players.length === 0 && (
+                  <tr>
+                    <td colSpan={GAMES.length + 2} style={{ color: "#a19a89" }}>
+                      No one on this team has played yet.
+                    </td>
+                  </tr>
+                )}
+                {r.players.map((p) => (
+                  <tr key={p.name}>
+                    <td>{p.name}</td>
+                    {GAMES.map((g) => (
+                      <td key={g.id}>{p.scores[g.id] || 0}</td>
+                    ))}
+                    <td className="score">{p.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
