@@ -1,11 +1,15 @@
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 import { NextResponse } from "next/server";
+import { unstable_noStore as noStore } from "next/cache";
 import { getPlayerBestScores, submitScore } from "../../../lib/db";
 import { GAMES, isEventOver } from "../../../lib/config";
 
 const GAME_IDS = new Set(GAMES.map((g) => g.id));
 
 export async function GET(request) {
+  noStore();
   const { searchParams } = new URL(request.url);
   const team = Number(searchParams.get("team"));
   const name = (searchParams.get("name") || "").trim();
