@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GAMES } from "../../lib/config";
 import { getSession } from "../../lib/session";
 import TopBar from "../../components/TopBar";
+import Footer from "../../components/Footer";
 
 const POLL_MS = 5000;
 
@@ -54,7 +55,7 @@ export default function LeaderboardPage() {
       <TopBar session={session} />
       <div className="content">
         <div className="lb-block">
-          <h2 className="section-title">Team standings</h2>
+          <h2 className="section-title">Team Standings — Level 14</h2>
           <p className="section-sub">Live — updates automatically every few seconds.</p>
           <div className="lb-teams">
             {teamTotals.map((t, i) => {
@@ -80,37 +81,40 @@ export default function LeaderboardPage() {
               <h2 className="section-title" style={{ fontSize: 20, color: g.accent }}>
                 {g.name} — top scores
               </h2>
-              <table className="lb-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Player</th>
-                    <th>Team</th>
-                    <th>Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.length === 0 && (
+              <div className="lb-table-wrap">
+                <table className="lb-table">
+                  <thead>
                     <tr>
-                      <td colSpan={4} style={{ color: "#a19a89" }}>
-                        No scores yet — be the first to play.
-                      </td>
+                      <th>#</th>
+                      <th>Player</th>
+                      <th>Team</th>
+                      <th>Score</th>
                     </tr>
-                  )}
-                  {rows.map((r, i) => (
-                    <tr key={`${r.team_id}-${r.player_name}`}>
-                      <td>{i + 1}</td>
-                      <td>{r.player_name}</td>
-                      <td>{r.team_name}</td>
-                      <td className="score">{r.best_score}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {rows.length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ color: "#a19a89" }}>
+                          No scores yet — be the first to play.
+                        </td>
+                      </tr>
+                    )}
+                    {rows.map((r, i) => (
+                      <tr key={`${r.team_id}-${r.player_name}`}>
+                        <td>{i + 1}</td>
+                        <td>{r.player_name}</td>
+                        <td>{r.team_name}</td>
+                        <td className="score">{r.best_score}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           );
         })}
       </div>
+      <Footer />
     </div>
   );
 }

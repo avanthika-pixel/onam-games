@@ -104,42 +104,38 @@ export default function Pookalam({ onFinish }) {
 
       {phase === "playing" && (
         <>
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            <circle cx={center} cy={center} r={18} fill="#e8a93b" />
-            {target.map((p) => {
-              const x = center + p.radius * Math.cos(p.angle);
-              const y = center + p.radius * Math.sin(p.angle);
-              const isFilled = filled[p.id] !== undefined;
-              return (
-                <g key={p.id}>
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={16}
-                    fill={isFilled ? filled[p.id] : "#f3e6c8"}
-                    stroke={p.color}
-                    strokeWidth={isFilled ? 0 : 3}
-                    strokeOpacity={0.5}
-                    onClick={() => placePetal(p.id)}
-                    style={{ cursor: "pointer" }}
-                  />
-                </g>
-              );
-            })}
-          </svg>
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="game-canvas-wrap" style={{ "--game-w": `${size}px`, "--game-ratio": 1 }}>
+            <svg viewBox={`0 0 ${size} ${size}`}>
+              <circle cx={center} cy={center} r={18} fill="#e8a93b" />
+              {target.map((p) => {
+                const x = center + p.radius * Math.cos(p.angle);
+                const y = center + p.radius * Math.sin(p.angle);
+                const isFilled = filled[p.id] !== undefined;
+                return (
+                  <g key={p.id}>
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={16}
+                      fill={isFilled ? filled[p.id] : "#f3e6c8"}
+                      stroke={p.color}
+                      strokeWidth={isFilled ? 0 : 3}
+                      strokeOpacity={0.5}
+                      onClick={() => placePetal(p.id)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+          <div className="color-palette">
             {COLORS.map((c) => (
               <button
                 key={c}
+                className={`color-swatch ${selectedColor === c ? "selected" : ""}`}
                 onClick={() => setSelectedColor(c)}
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: "50%",
-                  background: c,
-                  border:
-                    selectedColor === c ? "3px solid #23281f" : "3px solid transparent",
-                }}
+                style={{ background: c }}
               />
             ))}
           </div>

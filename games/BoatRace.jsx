@@ -138,16 +138,18 @@ export default function BoatRace({ onFinish }) {
         <span>Vallam Kali Dash</span>
         <span>{phase === "playing" ? `Score: ${stateRef.current?.score || 0}` : ""}</span>
       </div>
-      <canvas
-        ref={canvasRef}
-        width={W}
-        height={H}
-        onClick={(e) => {
-          const rect = e.target.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          moveLane(x < rect.width / 2 ? -1 : 1);
-        }}
-      />
+      <div className="game-canvas-wrap" style={{ "--game-w": `${W}px`, "--game-ratio": W / H }}>
+        <canvas
+          ref={canvasRef}
+          width={W}
+          height={H}
+          onClick={(e) => {
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            moveLane(x < rect.width / 2 ? -1 : 1);
+          }}
+        />
+      </div>
       {phase === "ready" && (
         <div className="game-overlay">
           <h2>Vallam Kali Dash</h2>

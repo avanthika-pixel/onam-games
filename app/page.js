@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TEAMS } from "../lib/config";
+import { TEAMS, COMPANY_NAME, EVENT_NAME } from "../lib/config";
 import { getSession, setSession } from "../lib/session";
 import PookalamRing from "../components/PookalamRing";
+import Footer from "../components/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,9 +60,12 @@ export default function LoginPage() {
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
           <PookalamRing size={56} />
         </div>
-        <span className="eyebrow">Onam · 14th Anniversary</span>
-        <h1>Team Score Arena</h1>
-        <p className="sub">Enter your name, pick your team, and enter the team PIN to play.</p>
+        <span className="eyebrow">{COMPANY_NAME.toUpperCase()}</span>
+        <h1>{EVENT_NAME}</h1>
+        <p className="sub">
+          {COMPANY_NAME}'s Onam + 14th-anniversary celebration. Enter your
+          name, pick your team, and enter your team's PIN to join.
+        </p>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -106,6 +110,7 @@ export default function LoginPage() {
 
         {error && <div className="error-box">{error}</div>}
       </div>
+      <Footer />
     </div>
   );
 }

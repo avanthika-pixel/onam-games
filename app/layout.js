@@ -1,8 +1,9 @@
 import "./globals.css";
+import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
 
 export const metadata = {
-  title: "Onam Team Score Arena",
-  description: "14th anniversary Onam team mini-game event",
+  title: `${EVENT_NAME} | ${COMPANY_NAME}`,
+  description: `${COMPANY_NAME}'s Onam + 14th-anniversary team mini-game event`,
 };
 
 export default function RootLayout({ children }) {

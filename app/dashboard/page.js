@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GAMES, isEventOver } from "../../lib/config";
 import { getSession } from "../../lib/session";
 import TopBar from "../../components/TopBar";
+import Footer from "../../components/Footer";
 import BoatRace from "../../games/BoatRace";
 import Pookalam from "../../games/Pookalam";
 import AnniversaryRun from "../../games/AnniversaryRun";
@@ -62,10 +63,10 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <h2 className="section-title">Pick a game</h2>
+            <h2 className="section-title">Welcome to Level 14</h2>
             <p className="section-sub">
-              Only your best score in each game counts toward Team {session.team}'s
-              total.
+              Pick a game and add to Team {session.team}'s score — only your
+              best score in each game counts toward the total.
             </p>
 
             <div className="game-grid">
@@ -101,6 +102,7 @@ export default function DashboardPage() {
           <AnniversaryRun onFinish={(score) => handleFinish("anniversary", score)} />
         )}
       </div>
+      <Footer />
     </div>
   );
 }

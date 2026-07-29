@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import PookalamRing from "./PookalamRing";
 import { clearSession } from "../lib/session";
+import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
 
 export default function TopBar({ session }) {
   const router = useRouter();
@@ -15,8 +16,11 @@ export default function TopBar({ session }) {
   return (
     <div className="topbar">
       <div className="brand">
-        <PookalamRing size={28} />
-        Team Score Arena
+        <PookalamRing size={26} />
+        <div className="brand-text">
+          <span className="brand-eyebrow">{COMPANY_NAME.toUpperCase()}</span>
+          <span className="brand-title">{EVENT_NAME}</span>
+        </div>
       </div>
       <div className="who">
         <span className="team-tag">

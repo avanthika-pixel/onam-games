@@ -71,40 +71,42 @@ export default function AdminPage() {
       <h2 className="section-title">Team settings</h2>
       <p className="section-sub">Update each team's name and PIN, then save.</p>
 
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>PIN</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {teams.map((t) => (
-            <tr key={t.id}>
-              <td>{t.id}</td>
-              <td>
-                <input
-                  value={t.name}
-                  onChange={(e) => updateField(t.id, "name", e.target.value)}
-                />
-              </td>
-              <td>
-                <input
-                  value={t.pin}
-                  onChange={(e) => updateField(t.id, "pin", e.target.value)}
-                />
-              </td>
-              <td>
-                <button className="btn btn-primary" style={{ width: "auto" }} onClick={() => save(t)}>
-                  Save
-                </button>
-              </td>
+      <div className="lb-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>PIN</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {teams.map((t) => (
+              <tr key={t.id}>
+                <td>{t.id}</td>
+                <td>
+                  <input
+                    value={t.name}
+                    onChange={(e) => updateField(t.id, "name", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <input
+                    value={t.pin}
+                    onChange={(e) => updateField(t.id, "pin", e.target.value)}
+                  />
+                </td>
+                <td>
+                  <button className="btn btn-primary" style={{ width: "auto" }} onClick={() => save(t)}>
+                    Save
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {status && <p style={{ marginTop: 16 }}>{status}</p>}
     </div>

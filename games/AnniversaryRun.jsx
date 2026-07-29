@@ -154,7 +154,9 @@ export default function AnniversaryRun({ onFinish }) {
             : ""}
         </span>
       </div>
-      <canvas ref={canvasRef} width={W} height={H} onClick={jump} />
+      <div className="game-canvas-wrap" style={{ "--game-w": `${W}px`, "--game-ratio": W / H }}>
+        <canvas ref={canvasRef} width={W} height={H} onClick={jump} />
+      </div>
       {phase === "ready" && (
         <div className="game-overlay">
           <h2>14 Candles</h2>
