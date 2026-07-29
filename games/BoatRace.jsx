@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 
 const W = 380;
@@ -44,15 +46,11 @@ export default function BoatRace({ onFinish }) {
       const s = stateRef.current;
       if (s.alive) {
         s.elapsed += dt;
-        s.score = Math.floor(s.elapsed / 100) + s.obstaclesDodged * 5 || Math.floor(s.elapsed / 100);
+        s.score = Math.floor(s.elapsed / 100);
         s.speed = 3.2 + s.elapsed / 6000;
 
-        // move boat toward target lane
-        const targetX = s.targetLane * LANE_W + LANE_W / 2;
-        const curX = s.lane * LANE_W + LANE_W / 2;
         s.lane += (s.targetLane - s.lane) * 0.25;
 
-        // spawn obstacles
         s.spawnTimer -= dt;
         if (s.spawnTimer <= 0) {
           const lane = Math.floor(Math.random() * LANES);
@@ -60,19 +58,13 @@ export default function BoatRace({ onFinish }) {
           s.spawnTimer = Math.max(650 - s.elapsed / 60, 280);
         }
 
-        // move obstacles
         s.obstacles.forEach((o) => (o.y += s.speed * (dt / 16)));
         s.obstacles = s.obstacles.filter((o) => o.y < H + 40);
 
-        // collision check
         const boatLane = Math.round(s.lane);
         const boatY = H - 90;
         s.obstacles.forEach((o) => {
-          if (
-            o.lane === boatLane &&
-            o.y > boatY - 30 &&
-            o.y < boatY + BOAT_H
-          ) {
+          if (o.lane === boatLane && o.y > boatY - 30 && o.y < boatY + BOAT_H) {
             s.alive = false;
           }
         });
@@ -88,9 +80,7 @@ export default function BoatRace({ onFinish }) {
         }
       }
 
-      // draw
       ctx.clearRect(0, 0, W, H);
-      // water
       ctx.fillStyle = "#dcefe6";
       ctx.fillRect(0, 0, W, H);
       for (let i = 0; i < LANES - 1; i++) {
@@ -102,7 +92,6 @@ export default function BoatRace({ onFinish }) {
         ctx.stroke();
         ctx.setLineDash([]);
       }
-      // obstacles (rocks)
       s.obstacles.forEach((o) => {
         const cx = o.lane * LANE_W + LANE_W / 2;
         ctx.fillStyle = "#7a1f2b";
@@ -110,7 +99,6 @@ export default function BoatRace({ onFinish }) {
         ctx.ellipse(cx, o.y, 26, 18, 0, 0, Math.PI * 2);
         ctx.fill();
       });
-      // boat
       const boatX = s.lane * LANE_W + LANE_W / 2;
       const boatY = H - 90;
       ctx.fillStyle = "#c99a2e";

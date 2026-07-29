@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 
 const W = 420;
@@ -52,7 +54,6 @@ export default function AnniversaryRun({ onFinish }) {
         s.distance += s.speed;
         s.speed = 4 + s.distance / 2000;
 
-        // physics
         s.vy += 0.6;
         s.y += s.vy;
         if (s.y > GROUND_Y) {
@@ -61,7 +62,6 @@ export default function AnniversaryRun({ onFinish }) {
           s.jumping = false;
         }
 
-        // spawn obstacles
         s.spawnTimer -= 16;
         if (s.spawnTimer <= 0) {
           s.obstacles.push({ x: W + 20 });
@@ -70,7 +70,6 @@ export default function AnniversaryRun({ onFinish }) {
         s.obstacles.forEach((o) => (o.x -= s.speed));
         s.obstacles = s.obstacles.filter((o) => o.x > -30);
 
-        // spawn candles
         s.candleTimer -= 16;
         if (s.candleTimer <= 0 && s.collected < GOAL_CANDLES) {
           s.candles.push({ x: W + 20, y: GROUND_Y - 60 - Math.random() * 40 });
@@ -79,7 +78,6 @@ export default function AnniversaryRun({ onFinish }) {
         s.candles.forEach((c) => (c.x -= s.speed));
         s.candles = s.candles.filter((c) => c.x > -30);
 
-        // collisions with obstacles
         const runnerX = 60;
         s.obstacles.forEach((o) => {
           if (Math.abs(o.x - runnerX) < 22 && s.y > GROUND_Y - 30) {
@@ -87,7 +85,6 @@ export default function AnniversaryRun({ onFinish }) {
           }
         });
 
-        // collect candles
         s.candles = s.candles.filter((c) => {
           const hit = Math.abs(c.x - runnerX) < 24 && Math.abs(c.y - s.y + 20) < 30;
           if (hit) s.collected += 1;
@@ -106,7 +103,6 @@ export default function AnniversaryRun({ onFinish }) {
         }
       }
 
-      // draw
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = "#fbf3e1";
       ctx.fillRect(0, 0, W, H);
@@ -116,17 +112,14 @@ export default function AnniversaryRun({ onFinish }) {
       ctx.lineTo(W, GROUND_Y + 20);
       ctx.stroke();
 
-      // runner
       ctx.fillStyle = "#7a1f2b";
       ctx.fillRect(48, s.y - 40, 24, 40);
 
-      // obstacles
       ctx.fillStyle = "#1f5c3d";
       s.obstacles.forEach((o) => {
         ctx.fillRect(o.x - 10, GROUND_Y - 30, 20, 30);
       });
 
-      // candles
       s.candles.forEach((c) => {
         ctx.fillStyle = "#e8a93b";
         ctx.fillRect(c.x - 3, c.y, 6, 20);

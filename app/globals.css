@@ -12,7 +12,7 @@
 
   --font-display: "Fraunces", serif;
   --font-body: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 * {
@@ -20,8 +20,7 @@
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
 }
 
@@ -51,7 +50,7 @@ a {
 /* ---------- layout shells ---------- */
 
 .shell {
-  min-height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -115,10 +114,11 @@ a {
   width: 100%;
 }
 
-/* ---------- centered card screens (login / team select) ---------- */
+/* ---------- centered card screens (login) ---------- */
 
 .center-screen {
   flex: 1;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -159,6 +159,37 @@ a {
   display: block;
 }
 
+.field {
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--maroon-deep);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--cream-dim);
+  background: var(--cream);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
 .btn {
   border: none;
   border-radius: 10px;
@@ -182,6 +213,13 @@ a {
   box-shadow: 0 8px 20px rgba(122, 31, 43, 0.35);
 }
 
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
 .error-box {
   background: #fbe3e3;
   color: var(--maroon-deep);
@@ -190,37 +228,6 @@ a {
   border-radius: 10px;
   font-size: 13px;
   margin-top: 16px;
-}
-
-/* ---------- team select ---------- */
-
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-top: 8px;
-}
-
-.team-option {
-  border: 2px solid var(--cream-dim);
-  background: var(--cream);
-  border-radius: 14px;
-  padding: 18px 10px;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--maroon);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.team-option:hover {
-  border-color: var(--gold);
-}
-
-.team-option.selected {
-  border-color: var(--maroon);
-  background: var(--marigold);
-  color: var(--maroon-deep);
 }
 
 /* ---------- dashboard / game grid ---------- */
@@ -289,6 +296,12 @@ a {
 .game-card .btn-play:hover {
   background: var(--accent, var(--gold));
   color: var(--ink);
+}
+
+.game-card .btn-play:disabled {
+  background: var(--cream-dim);
+  color: #9a9382;
+  cursor: default;
 }
 
 .locked-banner {
@@ -413,11 +426,33 @@ a {
   color: var(--maroon);
 }
 
+/* ---------- admin ---------- */
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cream-dim);
+}
+
+.admin-table input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--cream-dim);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
 @media (max-width: 560px) {
   .card {
     padding: 28px 22px;
-  }
-  .team-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 }

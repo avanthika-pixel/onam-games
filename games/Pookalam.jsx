@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState, useCallback } from "react";
 
 const COLORS = ["#c99a2e", "#7a1f2b", "#1f5c3d", "#e8a93b", "#2b4a7a"];
