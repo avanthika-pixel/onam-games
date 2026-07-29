@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function companyDomain() {
+      return "yourcompany.com"; // <-- match src/config.js COMPANY_DOMAIN
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isCompanyEmail() {
+      return isSignedIn() &&
+        request.auth.token.email.matches('.*@' + companyDomain() + '$');
+    }
+
+    match /users/{uid} {
+      // Anyone signed in can read (needed for the live leaderboard).
+      allow read: if isSignedIn();
+
+      // Create your own doc once, joining a team.
+      allow create: if isOwner(uid) && isCompanyEmail()
+        && request.resource.data.team is int
+        && request.resource.data.bestScores.boat == 0
+        && request.resource.data.bestScores.pookalam == 0
+        && request.resource.data.bestScores.anniversary == 0;
+
+      // Update only your own doc: team is immutable, scores can only go up.
+      allow update: if isOwner(uid) && isCompanyEmail()
+        && request.resource.data.team == resource.data.team
+        && request.resource.data.bestScores.boat >= resource.data.bestScores.boat
+        && request.resource.data.bestScores.pookalam >= resource.data.bestScores.pookalam
+        && request.resource.data.bestScores.anniversary >= resource.data.bestScores.anniversary;
+
+      allow delete: if false;
+    }
+  }
+}
