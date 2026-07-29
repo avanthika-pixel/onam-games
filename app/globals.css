@@ -161,6 +161,23 @@ a {
   padding: 24px 0 8px;
 }
 
+.center-screen--hero {
+  background: linear-gradient(
+      180deg,
+      rgba(6, 10, 22, 0.35),
+      rgba(6, 10, 22, 0.6)
+    ),
+    url("/tradition-and-tech.png") center center / cover no-repeat;
+}
+
+.center-screen--hero .site-footer {
+  color: rgba(255, 250, 240, 0.75);
+}
+
+.center-screen--hero .card {
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
 .card {
   background: var(--white);
   border: 1px solid rgba(122, 31, 43, 0.15);

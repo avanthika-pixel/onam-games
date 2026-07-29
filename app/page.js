@@ -55,7 +55,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="center-screen">
+    <div className="center-screen center-screen--hero">
       <div className="card">
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
           <PookalamRing size={56} />
