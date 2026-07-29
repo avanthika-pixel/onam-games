@@ -8,20 +8,38 @@ export default function AdminPage() {
   const [teams, setTeams] = useState([]);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
+  const [paused, setPaused] = useState(false);
+  const [pauseBusy, setPauseBusy] = useState(false);
 
   async function unlock(e) {
     e.preventDefault();
     setError("");
-    const res = await fetch("/api/admin/teams", {
-      headers: { "x-admin-password": password },
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
+    const [teamsRes, pauseRes] = await Promise.all([
+      fetch("/api/admin/teams", { headers: { "x-admin-password": password } }),
+      fetch("/api/admin/pause", { headers: { "x-admin-password": password } }),
+    ]);
+    const data = await teamsRes.json();
+    if (!teamsRes.ok || !data.ok) {
       setError("Wrong admin password.");
       return;
     }
+    const pauseData = await pauseRes.json();
     setTeams(data.teams);
+    if (pauseRes.ok && pauseData.ok) setPaused(pauseData.paused);
     setUnlocked(true);
+  }
+
+  async function togglePause() {
+    setPauseBusy(true);
+    const next = !paused;
+    const res = await fetch("/api/admin/pause", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-password": password },
+      body: JSON.stringify({ paused: next }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) setPaused(data.paused);
+    setPauseBusy(false);
   }
 
   function updateField(id, field, value) {
@@ -68,6 +86,21 @@ export default function AdminPage() {
 
   return (
     <div className="content">
+      <h2 className="section-title">Event controls</h2>
+      <p className="section-sub">
+        Scoring is currently <strong>{paused ? "paused" : "live"}</strong>. Pausing
+        hides the Play buttons and blocks new score submissions, but keeps the
+        site and leaderboard visible. Resume anytime.
+      </p>
+      <button
+        className="btn btn-primary"
+        style={{ width: "auto", marginBottom: 32 }}
+        onClick={togglePause}
+        disabled={pauseBusy}
+      >
+        {pauseBusy ? "Working…" : paused ? "Resume scoring" : "Pause scoring"}
+      </button>
+
       <h2 className="section-title">Team settings</h2>
       <p className="section-sub">Update each team's name and PIN, then save.</p>
 

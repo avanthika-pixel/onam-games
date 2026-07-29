@@ -3,7 +3,7 @@ export const fetchCache = "force-no-store";
 export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
-import { getPlayerBestScores, submitScore } from "../../../lib/db";
+import { getPlayerBestScores, submitScore, isPaused } from "../../../lib/db";
 import { GAMES, isEventOver } from "../../../lib/config";
 
 const GAME_IDS = new Set(GAMES.map((g) => g.id));
@@ -23,7 +23,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (isEventOver()) {
+  if (isEventOver() || (await isPaused())) {
     return NextResponse.json({ ok: false, error: "event_closed" }, { status: 403 });
   }
 

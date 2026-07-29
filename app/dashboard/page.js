@@ -15,7 +15,8 @@ export default function DashboardPage() {
   const [session, setSessionState] = useState(undefined); // undefined = loading, null = signed out
   const [best, setBest] = useState({});
   const [activeGame, setActiveGame] = useState(null);
-  const over = isEventOver();
+  const [paused, setPausedState] = useState(false);
+  const over = isEventOver() || paused;
 
   useEffect(() => {
     const s = getSession();
@@ -35,6 +36,23 @@ export default function DashboardPage() {
   useEffect(() => {
     if (session) refreshBest(session);
   }, [session, refreshBest]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStatus() {
+      const res = await fetch("/api/status");
+      const data = await res.json();
+      if (!cancelled && data.ok) setPausedState(data.paused);
+    }
+
+    loadStatus();
+    const interval = setInterval(loadStatus, 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   async function handleFinish(gameId, score) {
     await fetch("/api/score", {
@@ -56,10 +74,16 @@ export default function DashboardPage() {
       <div className="content">
         {!activeGame && (
           <>
-            {over && (
+            {isEventOver() && (
               <div className="locked-banner">
                 The event has ended — scoring is closed, but the leaderboard stays
                 live.
+              </div>
+            )}
+            {!isEventOver() && paused && (
+              <div className="locked-banner">
+                Scoring is paused for a moment — check back shortly. The
+                leaderboard stays live.
               </div>
             )}
 
@@ -80,7 +104,7 @@ export default function DashboardPage() {
                     disabled={over}
                     onClick={() => setActiveGame(g.id)}
                   >
-                    {over ? "Closed" : "Play"}
+                    {isEventOver() ? "Closed" : paused ? "Paused" : "Play"}
                   </button>
                 </div>
               ))}
