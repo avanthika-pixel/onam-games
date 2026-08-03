@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GAMES } from "../../lib/config";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -10,23 +11,40 @@ export default function AdminPage() {
   const [pauseBusy, setPauseBusy] = useState(false);
   const [pin, setPin] = useState("");
   const [pinStatus, setPinStatus] = useState("");
+  const [players, setPlayers] = useState([]);
+  const [scoresBusy, setScoresBusy] = useState("");
 
   async function unlock(e) {
     e.preventDefault();
     setError("");
-    const [pauseRes, pinRes] = await Promise.all([
+    const [pauseRes, pinRes, scoresRes] = await Promise.all([
       fetch("/api/admin/pause", { headers: { "x-admin-password": password } }),
       fetch("/api/admin/pin", { headers: { "x-admin-password": password } }),
+      fetch("/api/admin/scores", { headers: { "x-admin-password": password } }),
     ]);
-    if (!pauseRes.ok || !pinRes.ok) {
+    if (!pauseRes.ok || !pinRes.ok || !scoresRes.ok) {
       setError("Wrong admin password.");
       return;
     }
     const pauseData = await pauseRes.json();
     const pinData = await pinRes.json();
+    const scoresData = await scoresRes.json();
     if (pauseData.ok) setPaused(pauseData.paused);
     if (pinData.ok) setPin(pinData.pin || "");
+    if (scoresData.ok) setPlayers(scoresData.players);
     setUnlocked(true);
+  }
+
+  async function deleteScore(player, gameId) {
+    setScoresBusy(`${player}:${gameId || "all"}`);
+    const res = await fetch("/api/admin/scores", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", "x-admin-password": password },
+      body: JSON.stringify({ player, gameId }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) setPlayers(data.players);
+    setScoresBusy("");
   }
 
   async function togglePause() {
@@ -115,6 +133,75 @@ export default function AdminPage() {
         Save PIN
       </button>
       {pinStatus && <p style={{ marginTop: 16 }}>{pinStatus}</p>}
+
+      <h2 className="section-title" style={{ marginTop: 48 }}>
+        Manage scores
+      </h2>
+      <p className="section-sub">
+        Remove a single game's score for a player, or clear everything they've
+        submitted. Takes effect immediately on the leaderboard.
+      </p>
+
+      {players.length === 0 && <p style={{ color: "#6b6355" }}>No scores submitted yet.</p>}
+
+      {players.length > 0 && (
+        <div className="lb-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                {GAMES.map((g) => (
+                  <th key={g.id}>{g.name}</th>
+                ))}
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {players.map((p) => (
+                <tr key={p.name}>
+                  <td>{p.name}</td>
+                  {GAMES.map((g) => {
+                    const score = p.scores[g.id];
+                    const key = `${p.name}:${g.id}`;
+                    return (
+                      <td key={g.id}>
+                        {score === undefined ? (
+                          "—"
+                        ) : (
+                          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {score}
+                            <button
+                              type="button"
+                              className="linklike"
+                              style={{ fontSize: 12 }}
+                              disabled={scoresBusy === key}
+                              onClick={() => deleteScore(p.name, g.id)}
+                              title={`Remove ${p.name}'s ${g.name} score`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                  <td>
+                    <button
+                      type="button"
+                      className="btn"
+                      style={{ width: "auto", background: "var(--maroon)", color: "var(--white)" }}
+                      disabled={scoresBusy === `${p.name}:all`}
+                      onClick={() => deleteScore(p.name, null)}
+                    >
+                      Remove all
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
