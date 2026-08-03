@@ -802,6 +802,49 @@ a {
   border-color: var(--gold);
 }
 
+.name-combobox {
+  position: relative;
+}
+
+.name-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--white);
+  border: 1.5px solid var(--cream-dim);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  z-index: 50;
+  -webkit-overflow-scrolling: touch;
+}
+
+.name-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.name-option:hover,
+.name-option:focus {
+  background: var(--cream);
+}
+
+.name-option-empty {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #6b6355;
+}
+
 .btn {
   border: none;
   border-radius: 10px;

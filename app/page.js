@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COMPANY_NAME, EVENT_NAME, PLAYERS } from "../lib/config";
 import { getSession, setSession } from "../lib/session";
 import PookalamRing from "../components/PookalamRing";
 import Footer from "../components/Footer";
-
-const OTHER = "__other__";
 
 function isFullName(name) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -16,31 +14,46 @@ function isFullName(name) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [nameChoice, setNameChoice] = useState("");
-  const [customName, setCustomName] = useState("");
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const comboRef = useRef(null);
 
   useEffect(() => {
     if (getSession()) router.replace("/dashboard");
   }, [router]);
 
+  useEffect(() => {
+    function onOutsideClick(e) {
+      if (comboRef.current && !comboRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onOutsideClick);
+    document.addEventListener("touchstart", onOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", onOutsideClick);
+      document.removeEventListener("touchstart", onOutsideClick);
+    };
+  }, []);
+
+  const filtered = PLAYERS.filter((n) => n.toLowerCase().includes(query.trim().toLowerCase()));
+
+  function selectName(n) {
+    setQuery(n);
+    setOpen(false);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (!nameChoice) {
-      setError("Select your name from the list.");
-      return;
-    }
-
-    const name = (nameChoice === OTHER ? customName : nameChoice).trim();
+    const name = query.trim();
     if (!name || name.length > 40) {
       setError("Enter your name (under 40 characters).");
       return;
     }
-    if (nameChoice === OTHER && !isFullName(name)) {
+    if (!isFullName(name)) {
       setError("Enter your full name (first and last).");
       return;
     }
@@ -84,38 +97,40 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit}>
-          <div className="field">
+          <div className="field name-combobox" ref={comboRef}>
             <label htmlFor="name">Your name</label>
-            <select
+            <input
               id="name"
-              value={nameChoice}
-              onChange={(e) => setNameChoice(e.target.value)}
-            >
-              <option value="" disabled>
-                Select your name…
-              </option>
-              {PLAYERS.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-              <option value={OTHER}>Other (not listed)</option>
-            </select>
+              type="text"
+              autoComplete="off"
+              value={query}
+              onFocus={() => setOpen(true)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setOpen(true);
+              }}
+              placeholder="Type or pick your name…"
+            />
+            {open && (
+              <div className="name-dropdown">
+                {filtered.map((n) => (
+                  <button
+                    type="button"
+                    key={n}
+                    className="name-option"
+                    onMouseDown={() => selectName(n)}
+                  >
+                    {n}
+                  </button>
+                ))}
+                {filtered.length === 0 && (
+                  <div className="name-option-empty">
+                    Not listed — just finish typing your full name.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-
-          {nameChoice === OTHER && (
-            <div className="field">
-              <label htmlFor="customName">Type your full name</label>
-              <input
-                id="customName"
-                type="text"
-                value={customName}
-                maxLength={40}
-                onChange={(e) => setCustomName(e.target.value)}
-                placeholder="e.g. Anjali Menon"
-              />
-            </div>
-          )}
 
           <div className="field">
             <label htmlFor="pin">Event PIN</label>
