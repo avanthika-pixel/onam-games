@@ -14,148 +14,105 @@ const ITEMS = [
   { id: "olan", label: "Olan", emoji: "🎃" },
 ];
 
-const ROUND_TIME = 75;
-const MEMORIZE_TIME = 7;
-const WRONG_PENALTY = 5;
+const ROUND_TIME = 90;
+const WRONG_PENALTY = 4;
+const MATCH_DELAY_MS = 450;
+const MISMATCH_DELAY_MS = 800;
 
-function shuffled(arr) {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
+function buildDeck() {
+  const deck = ITEMS.flatMap((item) => [
+    { uid: `${item.id}-a`, itemId: item.id, emoji: item.emoji, label: item.label },
+    { uid: `${item.id}-b`, itemId: item.id, emoji: item.emoji, label: item.label },
+  ]);
+  for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    [deck[i], deck[j]] = [deck[j], deck[i]];
   }
-  return copy;
+  return deck;
 }
 
 export default function SadyaSort({ onFinish }) {
   const [phase, setPhase] = useState("ready");
-  const [subPhase, setSubPhase] = useState("memorize"); // "memorize" | "drag"
-  const [slotTargets, setSlotTargets] = useState([]); // ITEMS shuffled into 6 slot positions
-  const [trayOrder, setTrayOrder] = useState([]);
-  const [placed, setPlaced] = useState({}); // { [itemId]: true } once correctly dropped
-  const [memorizeLeft, setMemorizeLeft] = useState(MEMORIZE_TIME);
+  const [deck, setDeck] = useState([]);
+  const [matchedIds, setMatchedIds] = useState({}); // itemId -> true once its pair is found
+  const [flipped, setFlipped] = useState([]); // up to 2 tile uids
+  const [locked, setLocked] = useState(false);
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
-  const [misses, setMisses] = useState(0);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
   const [score, setScore] = useState(0);
-  const [dragging, setDragging] = useState(null); // { itemId, x, y }
-  const [wrongSlotId, setWrongSlotId] = useState(null);
-
-  const slotRefs = useRef({});
-  const draggingRef = useRef(null);
+  const wrongRef = useRef(0);
 
   const start = useCallback(() => {
-    setSlotTargets(shuffled(ITEMS));
-    setTrayOrder(shuffled(ITEMS));
-    setPlaced({});
-    setMisses(0);
-    setMemorizeLeft(MEMORIZE_TIME);
+    setDeck(buildDeck());
+    setMatchedIds({});
+    setFlipped([]);
+    setLocked(false);
     setTimeLeft(ROUND_TIME);
+    setWrongAttempts(0);
+    wrongRef.current = 0;
     setScore(0);
-    setSubPhase("memorize");
     setPhase("playing");
   }, []);
 
-  const finish = useCallback((placedMap, timeLeftAtEnd, missCount) => {
-    const correct = Object.keys(placedMap).length;
-    const finalScore = Math.max(
-      0,
-      correct * 15 + Math.round(timeLeftAtEnd * 0.5) - missCount * WRONG_PENALTY
-    );
+  const finish = useCallback((matchedCount, timeLeftAtEnd) => {
+    const timeBonus = Math.round(timeLeftAtEnd * 0.5);
+    const finalScore = Math.max(0, matchedCount * 15 + timeBonus - wrongRef.current * WRONG_PENALTY);
     setScore(finalScore);
     setPhase("done");
   }, []);
 
-  // Memorize countdown — the leaf is fully visible and nothing is
-  // draggable yet, then the hints disappear and the real round starts.
   useEffect(() => {
-    if (phase !== "playing" || subPhase !== "memorize") return;
-    if (memorizeLeft <= 0) {
-      setSubPhase("drag");
-      return;
-    }
-    const t = setTimeout(() => setMemorizeLeft((v) => v - 1), 1000);
-    return () => clearTimeout(t);
-  }, [phase, subPhase, memorizeLeft]);
-
-  useEffect(() => {
-    if (phase !== "playing" || subPhase !== "drag") return;
+    if (phase !== "playing") return;
     if (timeLeft <= 0) {
-      finish(placed, 0, misses);
+      finish(Object.keys(matchedIds).length, 0);
       return;
     }
     const t = setTimeout(() => setTimeLeft((v) => v - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, subPhase, timeLeft, placed, misses, finish]);
+  }, [phase, timeLeft, matchedIds, finish]);
 
   useEffect(() => {
-    if (phase !== "playing" || subPhase !== "drag") return;
-    if (Object.keys(placed).length === ITEMS.length) {
-      finish(placed, timeLeft, misses);
+    if (phase !== "playing") return;
+    if (Object.keys(matchedIds).length === ITEMS.length) {
+      finish(ITEMS.length, timeLeft);
     }
-  }, [placed, phase, subPhase, timeLeft, misses, finish]);
+  }, [matchedIds, phase, timeLeft, finish]);
 
-  function onPointerDown(e, itemId) {
-    if (placed[itemId]) return;
-    e.preventDefault();
-    draggingRef.current = itemId;
-    setDragging({ itemId, x: e.clientX, y: e.clientY });
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
-  }
+  function flipTile(tile) {
+    if (locked || matchedIds[tile.itemId] || flipped.includes(tile.uid)) return;
 
-  function onPointerMove(e) {
-    if (!draggingRef.current) return;
-    setDragging({ itemId: draggingRef.current, x: e.clientX, y: e.clientY });
-  }
+    const next = [...flipped, tile.uid];
+    setFlipped(next);
+    if (next.length < 2) return;
 
-  function onPointerUp(e) {
-    const itemId = draggingRef.current;
-    draggingRef.current = null;
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-    setDragging(null);
-    if (!itemId) return;
-
-    for (const slot of slotTargets) {
-      const el = slotRefs.current[slot.id];
-      if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      const within =
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom;
-      if (!within) continue;
-
-      if (slot.id === itemId) {
-        setPlaced((p) => ({ ...p, [itemId]: true }));
-      } else {
-        setMisses((m) => m + 1);
-        setWrongSlotId(slot.id);
-        setTimeout(() => setWrongSlotId(null), 300);
-      }
-      return;
+    setLocked(true);
+    const [a, b] = next.map((uid) => deck.find((d) => d.uid === uid));
+    if (a.itemId === b.itemId) {
+      setTimeout(() => {
+        setMatchedIds((m) => ({ ...m, [a.itemId]: true }));
+        setFlipped([]);
+        setLocked(false);
+      }, MATCH_DELAY_MS);
+    } else {
+      wrongRef.current += 1;
+      setWrongAttempts(wrongRef.current);
+      setTimeout(() => {
+        setFlipped([]);
+        setLocked(false);
+      }, MISMATCH_DELAY_MS);
     }
   }
 
-  useEffect(() => {
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const draggingItem = dragging ? ITEMS.find((i) => i.id === dragging.itemId) : null;
-  const showHints = subPhase === "memorize";
+  const matchedCount = Object.keys(matchedIds).length;
+  const stillHidden = ITEMS.filter((item) => !matchedIds[item.id]);
 
   return (
     <div className="game-screen">
       <div className="game-hud">
         <span>Sadya Sort</span>
         <span>
-          {phase === "playing" && subPhase === "memorize" && `Memorize: ${memorizeLeft}s`}
-          {phase === "playing" && subPhase === "drag" && `Time: ${timeLeft}s · Misses: ${misses}`}
+          {phase === "playing" &&
+            `Time: ${timeLeft}s · Pairs: ${matchedCount}/${ITEMS.length} · Wrong: ${wrongAttempts}`}
         </span>
       </div>
 
@@ -163,10 +120,10 @@ export default function SadyaSort({ onFinish }) {
         <div className="game-overlay">
           <h2>Sadya Sort</h2>
           <p>
-            The leaf shows all {ITEMS.length} dishes in place for {MEMORIZE_TIME} seconds —
-            memorize where each one goes. Then the hints vanish and you drag
-            each dish from the tray onto its correct spot from memory. Wrong
-            guesses cost you {WRONG_PENALTY} points each, so guess carefully.
+            A classic memory match — {ITEMS.length} dish pairs, {deck.length || ITEMS.length * 2}{" "}
+            face-down tiles. Flip two at a time; matching pairs stay revealed,
+            mismatches flip back. Find every pair before time runs out. Each
+            wrong flip costs {WRONG_PENALTY} points.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
@@ -175,83 +132,48 @@ export default function SadyaSort({ onFinish }) {
       )}
 
       {phase === "playing" && (
-        <>
-          <div className="sadya-board">
-            {slotTargets.map((slot) => (
-              <div
-                key={slot.id}
-                ref={(el) => (slotRefs.current[slot.id] = el)}
-                className={`sadya-slot ${placed[slot.id] ? "filled" : ""} ${
-                  wrongSlotId === slot.id ? "wrong" : ""
+        <div className="memory-board">
+          {deck.map((tile) => {
+            const faceUp = matchedIds[tile.itemId] || flipped.includes(tile.uid);
+            return (
+              <button
+                key={tile.uid}
+                type="button"
+                className={`memory-tile ${faceUp ? "flipped" : ""} ${
+                  matchedIds[tile.itemId] ? "matched" : ""
                 }`}
+                onClick={() => flipTile(tile)}
               >
-                <span
-                  className="sadya-slot-emoji"
-                  style={{ opacity: placed[slot.id] ? 1 : showHints ? 1 : 0 }}
-                >
-                  {slot.emoji}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {subPhase === "drag" && (
-            <div className="sadya-tray">
-              {trayOrder
-                .filter((item) => !placed[item.id])
-                .map((item) => (
-                  <button
-                    key={item.id}
-                    className="sadya-tray-item"
-                    onPointerDown={(e) => onPointerDown(e, item.id)}
-                  >
-                    <span>{item.emoji}</span>
-                    <small>{item.label}</small>
-                  </button>
-                ))}
-            </div>
-          )}
-
-          {draggingItem && (
-            <div
-              className="sadya-drag-ghost"
-              style={{ left: dragging.x, top: dragging.y }}
-            >
-              {draggingItem.emoji}
-            </div>
-          )}
-        </>
+                {faceUp ? tile.emoji : "🌿"}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       {phase === "done" && (
         <div className="game-overlay">
-          <h2>{Object.keys(placed).length === ITEMS.length ? "Leaf complete!" : "Time's up!"}</h2>
+          <h2>{matchedCount === ITEMS.length ? "Full sadya matched!" : "Time's up!"}</h2>
           <p>Score: {score}</p>
 
-          {(() => {
-            const missed = ITEMS.filter((item) => !placed[item.id]);
-            const correctCount = ITEMS.length - missed.length;
-            return (
-              <div className="sadya-review">
-                <p className="sadya-review-summary">
-                  {correctCount}/{ITEMS.length} placed correctly · {misses} wrong{" "}
-                  {misses === 1 ? "guess" : "guesses"}
-                </p>
-                {missed.length > 0 && (
-                  <>
-                    <p className="sadya-review-label">Where you went wrong:</p>
-                    <div className="sadya-review-chips">
-                      {missed.map((item) => (
-                        <span className="sadya-review-chip" key={item.id}>
-                          {item.emoji} {item.label}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })()}
+          <div className="sadya-review">
+            <p className="sadya-review-summary">
+              {matchedCount}/{ITEMS.length} pairs found · {wrongAttempts} wrong{" "}
+              {wrongAttempts === 1 ? "flip" : "flips"}
+            </p>
+            {stillHidden.length > 0 && (
+              <>
+                <p className="sadya-review-label">Never matched:</p>
+                <div className="sadya-review-chips">
+                  {stillHidden.map((item) => (
+                    <span className="sadya-review-chip" key={item.id}>
+                      {item.emoji} {item.label}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
 
           <button className="btn btn-primary" onClick={start} style={{ marginRight: 10 }}>
             Play again
