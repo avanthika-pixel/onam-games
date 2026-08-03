@@ -22,6 +22,8 @@ const GLITCHES = [
 
 const ROUND_TIME = 45;
 const SWIPE_THRESHOLD = 90;
+const SWIPE_COOLDOWN_MS = 380;
+const WRONG_PENALTY = 10;
 
 function randomCard() {
   const good = Math.random() < 0.5;
@@ -41,6 +43,7 @@ export default function LootSwipe({ onFinish }) {
 
   const draggingRef = useRef(false);
   const startXRef = useRef(0);
+  const lastSwipeRef = useRef(0);
 
   const start = useCallback(() => {
     setCard(randomCard());
@@ -64,16 +67,25 @@ export default function LootSwipe({ onFinish }) {
 
   function resolveSwipe(direction) {
     if (phase !== "playing") return;
+
+    // Blocks the "hold the arrow key / spam-click" exploit: a real swipe
+    // gesture can't happen faster than this, so without it a held key's
+    // auto-repeat could rack up a swipe every few ms regardless of whether
+    // the card was ever actually read.
+    const now = performance.now();
+    if (now - lastSwipeRef.current < SWIPE_COOLDOWN_MS) return;
+    lastSwipeRef.current = now;
+
     const swipeRight = direction > 0;
     const correct = swipeRight === card.good;
     setFlash(correct ? "correct" : "wrong");
-    setScore((s) => (correct ? s + 10 + Math.min(streak, 10) * 2 : s));
+    setScore((s) => Math.max(0, correct ? s + 10 + Math.min(streak, 10) * 2 : s - WRONG_PENALTY));
     setStreak((s) => (correct ? s + 1 : 0));
     setDragX(0);
     setTimeout(() => {
       setFlash(null);
       setCard(randomCard());
-    }, 120);
+    }, 150);
   }
 
   function onPointerDown(e) {
@@ -103,6 +115,7 @@ export default function LootSwipe({ onFinish }) {
   useEffect(() => {
     function onKey(e) {
       if (phase !== "playing" || !card) return;
+      if (e.repeat) return; // ignore auto-repeat from a held-down key
       if (e.key === "ArrowLeft") resolveSwipe(-SWIPE_THRESHOLD - 1);
       if (e.key === "ArrowRight") resolveSwipe(SWIPE_THRESHOLD + 1);
     }
@@ -133,8 +146,9 @@ export default function LootSwipe({ onFinish }) {
           <h2>Loot Swipe</h2>
           <p>
             Swipe right to keep a power-up, swipe left to reject a glitch.
-            Arrow keys work too. Build a streak for bonus points — 45
-            seconds on the clock.
+            Arrow keys work too. Correct swipes build a streak for bonus
+            points — wrong ones cost you points and reset your streak, so
+            guessing blindly won't get you far. 45 seconds on the clock.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
