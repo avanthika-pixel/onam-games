@@ -325,12 +325,26 @@ a {
 }
 
 .center-screen--hero {
+  /* Bottom-most layer always covers the full box (no gaps), so any space the
+     photo doesn't fill — because it's letterboxed on narrow/tall screens
+     below — shows this Onam gold/leaf + tech-blue wash instead of blank. */
   background-image: linear-gradient(180deg, rgba(6, 10, 22, 0.35), rgba(6, 10, 22, 0.6)),
-    url("/tradition-and-tech.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: calc(50% + var(--px, 0px) * 0.35) calc(50% + var(--py, 0px) * 0.35);
+    url("/tradition-and-tech.png"),
+    linear-gradient(160deg, rgba(201, 154, 46, 0.4) 0%, rgba(7, 11, 22, 1) 45%, rgba(31, 92, 61, 0.4) 100%);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover;
+  background-position: center, calc(50% + var(--px, 0px) * 0.35) calc(50% + var(--py, 0px) * 0.35), center;
   transition: background-position 0.5s ease-out;
+}
+
+/* On portrait/narrow screens "cover" crops the wide photo down to its empty
+   middle, hiding the Kathakali art on the left and the controller art on
+   the right — switch the photo layer to "contain" whenever the viewport is
+   narrower than the photo's own 3:2 ratio so both edges stay visible. */
+@media (max-aspect-ratio: 3/2) {
+  .center-screen--hero {
+    background-size: cover, contain, cover;
+  }
 }
 
 .center-screen--hero .site-footer {
@@ -338,7 +352,24 @@ a {
 }
 
 .center-screen--hero .card {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 12% 10%, rgba(201, 154, 46, 0.12), transparent 42%),
+    radial-gradient(circle at 88% 90%, rgba(31, 92, 61, 0.12), transparent 45%),
+    radial-gradient(circle at 90% 8%, rgba(58, 160, 255, 0.1), transparent 40%),
+    linear-gradient(165deg, var(--white), var(--cream-dim));
+  border-color: rgba(201, 154, 46, 0.3);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.center-screen--hero .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--gold), var(--tech-blue), var(--leaf), var(--maroon));
 }
 
 .card {
