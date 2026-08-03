@@ -9,6 +9,8 @@ import Footer from "../../components/Footer";
 import BoatRace from "../../games/BoatRace";
 import Pookalam from "../../games/Pookalam";
 import AnniversaryRun from "../../games/AnniversaryRun";
+import SadyaSort from "../../games/SadyaSort";
+import LootSwipe from "../../games/LootSwipe";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -124,6 +126,12 @@ export default function DashboardPage() {
         )}
         {activeGame === "anniversary" && (
           <AnniversaryRun onFinish={(score) => handleFinish("anniversary", score)} />
+        )}
+        {activeGame === "sadya" && (
+          <SadyaSort onFinish={(score) => handleFinish("sadya", score)} />
+        )}
+        {activeGame === "lootswipe" && (
+          <LootSwipe onFinish={(score) => handleFinish("lootswipe", score)} />
         )}
       </div>
       <Footer />
