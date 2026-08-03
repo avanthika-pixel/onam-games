@@ -1,5 +1,6 @@
 import "./globals.css";
 import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
+import ParallaxBackground from "../components/ParallaxBackground";
 
 export const metadata = {
   title: `${EVENT_NAME} | ${COMPANY_NAME}`,
@@ -17,7 +18,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ParallaxBackground />
+        {children}
+      </body>
     </html>
   );
 }
