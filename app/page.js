@@ -53,7 +53,7 @@ export default function LoginPage() {
         setError("That name or PIN didn't match. Please try again.");
         return;
       }
-      setSession({ name: trimmedName });
+      setSession({ name: data.name });
       router.push("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");

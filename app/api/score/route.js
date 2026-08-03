@@ -5,13 +5,14 @@ import { NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
 import { getPlayerBestScores, submitScore, isPaused } from "../../../lib/db";
 import { GAMES, isEventOver } from "../../../lib/config";
+import { normalizeName } from "../../../lib/name";
 
 const GAME_IDS = new Set(GAMES.map((g) => g.id));
 
 export async function GET(request) {
   noStore();
   const { searchParams } = new URL(request.url);
-  const name = (searchParams.get("name") || "").trim();
+  const name = normalizeName(searchParams.get("name") || "");
 
   if (!name) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
@@ -27,7 +28,7 @@ export async function POST(request) {
   }
 
   const body = await request.json().catch(() => null);
-  const name = (body?.name || "").trim();
+  const name = normalizeName(body?.name || "");
   const gameId = body?.gameId;
   const score = Number(body?.score);
 
