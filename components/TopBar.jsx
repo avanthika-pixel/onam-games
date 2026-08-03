@@ -23,9 +23,7 @@ export default function TopBar({ session }) {
         </div>
       </div>
       <div className="who">
-        <span className="team-tag">
-          {session.name} · Team {session.team}
-        </span>
+        <span className="team-tag">{session.name}</span>
         <button className="linklike" onClick={() => router.push("/dashboard")}>
           Games
         </button>

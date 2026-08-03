@@ -1,10 +1,9 @@
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
-import { seedTeams } from "../../../lib/db";
+import { ensureSchema } from "../../../lib/db";
 
-// Hit this once after deploying to create the tables and seed the 4 teams
-// with placeholder PINs (1101-1104). Change the real PINs via /admin after.
+// Idempotent — safe to hit any time to make sure tables exist.
 export async function POST() {
-  await seedTeams();
+  await ensureSchema();
   return NextResponse.json({ ok: true });
 }

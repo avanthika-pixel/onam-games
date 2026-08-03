@@ -28,7 +28,7 @@ export default function DashboardPage() {
   }, [router]);
 
   const refreshBest = useCallback(async (s) => {
-    const res = await fetch(`/api/score?team=${s.team}&name=${encodeURIComponent(s.name)}`);
+    const res = await fetch(`/api/score?name=${encodeURIComponent(s.name)}`);
     const data = await res.json();
     if (data.ok) setBest(data.best);
   }, []);
@@ -58,7 +58,7 @@ export default function DashboardPage() {
     await fetch("/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team: session.team, name: session.name, gameId, score }),
+      body: JSON.stringify({ name: session.name, gameId, score }),
     });
     await refreshBest(session);
     setActiveGame(null);
@@ -89,8 +89,8 @@ export default function DashboardPage() {
 
             <h2 className="section-title">Welcome to Level 14</h2>
             <p className="section-sub">
-              Pick a game and add to Team {session.team}'s score — only your
-              best score in each game counts toward the total.
+              Pick a game and climb the leaderboard — only your best score in
+              each game counts.
             </p>
 
             <div className="game-grid">

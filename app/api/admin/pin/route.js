@@ -3,7 +3,7 @@ export const fetchCache = "force-no-store";
 export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
-import { listTeams, updateTeam } from "../../../../lib/db";
+import { getEventPin, setEventPin } from "../../../../lib/db";
 
 function checkAuth(request) {
   const password = request.headers.get("x-admin-password") || "";
@@ -15,8 +15,8 @@ export async function GET(request) {
   if (!checkAuth(request)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  const teams = await listTeams();
-  return NextResponse.json({ ok: true, teams });
+  const pin = await getEventPin();
+  return NextResponse.json({ ok: true, pin });
 }
 
 export async function POST(request) {
@@ -24,14 +24,10 @@ export async function POST(request) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   const body = await request.json().catch(() => null);
-  const id = Number(body?.id);
-  const name = (body?.name || "").trim();
   const pin = (body?.pin || "").trim();
-
-  if (!Number.isInteger(id) || !name || !pin) {
+  if (!pin) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
   }
-
-  await updateTeam(id, name, pin);
-  return NextResponse.json({ ok: true });
+  await setEventPin(pin);
+  return NextResponse.json({ ok: true, pin });
 }

@@ -1,36 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { GAMES } from "../../lib/config";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
-  const [teams, setTeams] = useState([]);
-  const [rosters, setRosters] = useState([]);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
   const [paused, setPaused] = useState(false);
   const [pauseBusy, setPauseBusy] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinStatus, setPinStatus] = useState("");
 
   async function unlock(e) {
     e.preventDefault();
     setError("");
-    const [teamsRes, pauseRes, rosterRes] = await Promise.all([
-      fetch("/api/admin/teams", { headers: { "x-admin-password": password } }),
+    const [pauseRes, pinRes] = await Promise.all([
       fetch("/api/admin/pause", { headers: { "x-admin-password": password } }),
-      fetch("/api/admin/roster", { headers: { "x-admin-password": password } }),
+      fetch("/api/admin/pin", { headers: { "x-admin-password": password } }),
     ]);
-    const data = await teamsRes.json();
-    if (!teamsRes.ok || !data.ok) {
+    if (!pauseRes.ok || !pinRes.ok) {
       setError("Wrong admin password.");
       return;
     }
     const pauseData = await pauseRes.json();
-    const rosterData = await rosterRes.json();
-    setTeams(data.teams);
-    if (pauseRes.ok && pauseData.ok) setPaused(pauseData.paused);
-    if (rosterRes.ok && rosterData.ok) setRosters(rosterData.rosters);
+    const pinData = await pinRes.json();
+    if (pauseData.ok) setPaused(pauseData.paused);
+    if (pinData.ok) setPin(pinData.pin || "");
     setUnlocked(true);
   }
 
@@ -47,19 +42,15 @@ export default function AdminPage() {
     setPauseBusy(false);
   }
 
-  function updateField(id, field, value) {
-    setTeams((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
-  }
-
-  async function save(team) {
-    setStatus("");
-    const res = await fetch("/api/admin/teams", {
+  async function savePin() {
+    setPinStatus("");
+    const res = await fetch("/api/admin/pin", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-password": password },
-      body: JSON.stringify({ id: team.id, name: team.name, pin: team.pin }),
+      body: JSON.stringify({ pin }),
     });
     const data = await res.json();
-    setStatus(data.ok ? `Saved ${team.name}.` : "Failed to save.");
+    setPinStatus(data.ok ? "Saved." : "Failed to save.");
   }
 
   if (!unlocked) {
@@ -67,8 +58,8 @@ export default function AdminPage() {
       <div className="center-screen">
         <div className="card">
           <span className="eyebrow">Admin</span>
-          <h1>Team settings</h1>
-          <p className="sub">Enter the admin password to manage team names and PINs.</p>
+          <h1>Event controls</h1>
+          <p className="sub">Enter the admin password to manage the event.</p>
           <form onSubmit={unlock}>
             <div className="field">
               <label htmlFor="pw">Admin password</label>
@@ -91,7 +82,7 @@ export default function AdminPage() {
 
   return (
     <div className="content">
-      <h2 className="section-title">Event controls</h2>
+      <h2 className="section-title">Scoring</h2>
       <p className="section-sub">
         Scoring is currently <strong>{paused ? "paused" : "live"}</strong>. Pausing
         hides the Play buttons and blocks new score submissions, but keeps the
@@ -99,100 +90,31 @@ export default function AdminPage() {
       </p>
       <button
         className="btn btn-primary"
-        style={{ width: "auto", marginBottom: 32 }}
+        style={{ width: "auto", marginBottom: 40 }}
         onClick={togglePause}
         disabled={pauseBusy}
       >
         {pauseBusy ? "Working…" : paused ? "Resume scoring" : "Pause scoring"}
       </button>
 
-      <h2 className="section-title">Team settings</h2>
-      <p className="section-sub">Update each team's name and PIN, then save.</p>
-
-      <div className="lb-table-wrap">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>PIN</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((t) => (
-              <tr key={t.id}>
-                <td>{t.id}</td>
-                <td>
-                  <input
-                    value={t.name}
-                    onChange={(e) => updateField(t.id, "name", e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    value={t.pin}
-                    onChange={(e) => updateField(t.id, "pin", e.target.value)}
-                  />
-                </td>
-                <td>
-                  <button className="btn btn-primary" style={{ width: "auto" }} onClick={() => save(t)}>
-                    Save
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {status && <p style={{ marginTop: 16 }}>{status}</p>}
-
-      <h2 className="section-title" style={{ marginTop: 48 }}>
-        Team rosters
-      </h2>
+      <h2 className="section-title">Event PIN</h2>
       <p className="section-sub">
-        Everyone who has submitted at least one score, grouped by team.
+        The shared PIN everyone enters alongside their name to join. Changing
+        it takes effect immediately — anyone who hasn't logged in yet will
+        need the new PIN.
       </p>
-
-      {rosters.map((r) => (
-        <div className="lb-block" key={r.team.id}>
-          <h3 style={{ fontFamily: "var(--font-display)", color: "var(--maroon)", marginBottom: 8 }}>
-            {r.team.name} <span style={{ color: "#6b6355", fontSize: 14, fontFamily: "var(--font-mono)" }}>(Team {r.team.id})</span>
-          </h3>
-          <div className="lb-table-wrap">
-            <table className="lb-table">
-              <thead>
-                <tr>
-                  <th>Player</th>
-                  {GAMES.map((g) => (
-                    <th key={g.id}>{g.name}</th>
-                  ))}
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.players.length === 0 && (
-                  <tr>
-                    <td colSpan={GAMES.length + 2} style={{ color: "#a19a89" }}>
-                      No one on this team has played yet.
-                    </td>
-                  </tr>
-                )}
-                {r.players.map((p) => (
-                  <tr key={p.name}>
-                    <td>{p.name}</td>
-                    {GAMES.map((g) => (
-                      <td key={g.id}>{p.scores[g.id] || 0}</td>
-                    ))}
-                    <td className="score">{p.total}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
+      <div className="field" style={{ maxWidth: 240 }}>
+        <label htmlFor="pin">PIN</label>
+        <input id="pin" value={pin} onChange={(e) => setPin(e.target.value)} />
+      </div>
+      <button
+        className="btn btn-primary"
+        style={{ width: "auto" }}
+        onClick={savePin}
+      >
+        Save PIN
+      </button>
+      {pinStatus && <p style={{ marginTop: 16 }}>{pinStatus}</p>}
     </div>
   );
 }

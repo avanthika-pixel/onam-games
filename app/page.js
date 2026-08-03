@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TEAMS, COMPANY_NAME, EVENT_NAME } from "../lib/config";
+import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
 import { getSession, setSession } from "../lib/session";
 import PookalamRing from "../components/PookalamRing";
 import Footer from "../components/Footer";
 
+function isFullName(name) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length >= 2;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [name, setName] = useState("");
-  const [team, setTeam] = useState(TEAMS[0]);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,8 +32,12 @@ export default function LoginPage() {
       setError("Enter your name (under 40 characters).");
       return;
     }
+    if (!isFullName(trimmedName)) {
+      setError("Enter your full name (first and last).");
+      return;
+    }
     if (!pin.trim()) {
-      setError("Enter your team's PIN.");
+      setError("Enter the event PIN.");
       return;
     }
 
@@ -38,14 +46,14 @@ export default function LoginPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmedName, team, pin: pin.trim() }),
+        body: JSON.stringify({ name: trimmedName, pin: pin.trim() }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
-        setError("That name, team, or PIN didn't match. Please try again.");
+        setError("That name or PIN didn't match. Please try again.");
         return;
       }
-      setSession({ name: trimmedName, team, teamName: data.teamName });
+      setSession({ name: trimmedName });
       router.push("/dashboard");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -64,35 +72,24 @@ export default function LoginPage() {
         <h1>{EVENT_NAME}</h1>
         <p className="sub">
           {COMPANY_NAME}'s Onam + 14th-anniversary celebration. Enter your
-          name, pick your team, and enter your team's PIN to join.
+          full name and the event PIN to join.
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="name">Your name</label>
+            <label htmlFor="name">Your full name</label>
             <input
               id="name"
               type="text"
               value={name}
               maxLength={40}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Anjali"
+              placeholder="e.g. Anjali Menon"
             />
           </div>
 
           <div className="field">
-            <label htmlFor="team">Team</label>
-            <select id="team" value={team} onChange={(e) => setTeam(Number(e.target.value))}>
-              {TEAMS.map((t) => (
-                <option key={t} value={t}>
-                  Team {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="pin">Team PIN</label>
+            <label htmlFor="pin">Event PIN</label>
             <input
               id="pin"
               type="password"

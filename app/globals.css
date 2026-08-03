@@ -372,47 +372,64 @@ a {
   margin-bottom: 40px;
 }
 
-.lb-teams {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
-  margin-bottom: 10px;
+.game-lb-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin: 0 0 14px;
 }
 
-.lb-team-card {
+.podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.podium-spot {
   background: var(--white);
   border-radius: 14px;
-  padding: 18px;
+  padding: 20px 14px;
   text-align: center;
   border: 2px solid var(--cream-dim);
-  position: relative;
 }
 
-.lb-team-card.leading {
-  border-color: var(--gold);
-  background: var(--marigold);
-}
-
-.lb-team-card .rank {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--maroon);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lb-team-card .team-name {
-  font-family: var(--font-display);
-  font-size: 24px;
-  color: var(--maroon-deep);
-  margin: 4px 0;
-}
-
-.lb-team-card .team-score {
-  font-family: var(--font-mono);
+.podium-medal {
   font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.podium-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--maroon-deep);
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.podium-score {
+  font-family: var(--font-mono);
+  font-size: 22px;
   font-weight: 700;
   color: var(--ink);
+}
+
+.podium-1 {
+  border-color: var(--gold);
+  background: var(--marigold);
+  transform: translateY(-6px);
+}
+
+.podium-1 .podium-score {
+  font-size: 26px;
+}
+
+.podium-2 {
+  border-color: #c7c7c7;
+}
+
+.podium-3 {
+  border-color: #cd8b5c;
 }
 
 .lb-table-wrap {
@@ -608,8 +625,24 @@ a {
     margin-right: 0 !important;
   }
 
-  .lb-teams {
-    grid-template-columns: repeat(2, 1fr);
+  .podium {
+    gap: 8px;
+  }
+
+  .podium-spot {
+    padding: 14px 8px;
+  }
+
+  .podium-name {
+    font-size: 13px;
+  }
+
+  .podium-score {
+    font-size: 17px;
+  }
+
+  .podium-1 .podium-score {
+    font-size: 20px;
   }
 }
 
