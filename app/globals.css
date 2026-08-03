@@ -76,8 +76,22 @@ a {
   border-radius: 50%;
   transform: translate(calc(var(--px, 0px) * var(--depth, 0.5)), calc(var(--py, 0px) * var(--depth, 0.5)));
   transition: transform 0.5s ease-out;
-  animation: parallax-drift 7s ease-in-out infinite;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   will-change: transform, translate;
+}
+
+.parallax-path-1 {
+  animation-name: parallax-float-1;
+}
+.parallax-path-2 {
+  animation-name: parallax-float-2;
+}
+.parallax-path-3 {
+  animation-name: parallax-float-3;
+}
+.parallax-path-4 {
+  animation-name: parallax-float-4;
 }
 
 .parallax-gold {
@@ -104,13 +118,75 @@ a {
     rotate(45deg);
 }
 
-@keyframes parallax-drift {
-  0%,
+@keyframes parallax-float-1 {
+  0% {
+    translate: 0 0;
+  }
+  25% {
+    translate: 32px -22px;
+  }
+  50% {
+    translate: 10px -42px;
+  }
+  75% {
+    translate: -26px -16px;
+  }
   100% {
     translate: 0 0;
   }
+}
+
+@keyframes parallax-float-2 {
+  0% {
+    translate: 0 0;
+  }
+  30% {
+    translate: -36px 16px;
+  }
+  60% {
+    translate: -10px 38px;
+  }
+  85% {
+    translate: 22px 10px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes parallax-float-3 {
+  0% {
+    translate: 0 0;
+  }
+  20% {
+    translate: 22px 26px;
+  }
   50% {
-    translate: 0 -14px;
+    translate: 42px -10px;
+  }
+  75% {
+    translate: 6px -32px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes parallax-float-4 {
+  0% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -22px -32px;
+  }
+  55% {
+    translate: 26px -22px;
+  }
+  80% {
+    translate: 32px 22px;
+  }
+  100% {
+    translate: 0 0;
   }
 }
 

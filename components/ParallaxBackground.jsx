@@ -6,18 +6,18 @@ import { useEffect, useRef } from "react";
 // mismatches between server and client hydration. depth = how far it
 // travels relative to the pointer; variant = which theme it represents.
 const DOTS = [
-  { top: "8%", left: "12%", size: 16, depth: 0.5, variant: "gold" },
-  { top: "16%", left: "84%", size: 24, depth: 0.85, variant: "blue" },
-  { top: "28%", left: "6%", size: 12, depth: 0.35, variant: "leaf" },
-  { top: "42%", left: "93%", size: 18, depth: 0.65, variant: "maroon" },
-  { top: "58%", left: "16%", size: 20, depth: 0.95, variant: "blue" },
-  { top: "70%", left: "89%", size: 14, depth: 0.45, variant: "gold" },
-  { top: "84%", left: "9%", size: 18, depth: 0.75, variant: "leaf" },
-  { top: "12%", left: "50%", size: 10, depth: 0.3, variant: "maroon" },
-  { top: "50%", left: "50%", size: 22, depth: 0.55, variant: "blue" },
-  { top: "92%", left: "62%", size: 16, depth: 0.6, variant: "gold" },
-  { top: "24%", left: "70%", size: 12, depth: 0.4, variant: "leaf" },
-  { top: "66%", left: "36%", size: 14, depth: 0.8, variant: "blue" },
+  { top: "8%", left: "12%", size: 16, depth: 0.5, variant: "gold", path: 1, dur: 16 },
+  { top: "16%", left: "84%", size: 24, depth: 0.85, variant: "blue", path: 2, dur: 21 },
+  { top: "28%", left: "6%", size: 12, depth: 0.35, variant: "leaf", path: 3, dur: 18 },
+  { top: "42%", left: "93%", size: 18, depth: 0.65, variant: "maroon", path: 4, dur: 24 },
+  { top: "58%", left: "16%", size: 20, depth: 0.95, variant: "blue", path: 1, dur: 19 },
+  { top: "70%", left: "89%", size: 14, depth: 0.45, variant: "gold", path: 2, dur: 17 },
+  { top: "84%", left: "9%", size: 18, depth: 0.75, variant: "leaf", path: 3, dur: 23 },
+  { top: "12%", left: "50%", size: 10, depth: 0.3, variant: "maroon", path: 4, dur: 15 },
+  { top: "50%", left: "50%", size: 22, depth: 0.55, variant: "blue", path: 1, dur: 22 },
+  { top: "92%", left: "62%", size: 16, depth: 0.6, variant: "gold", path: 2, dur: 20 },
+  { top: "24%", left: "70%", size: 12, depth: 0.4, variant: "leaf", path: 3, dur: 16 },
+  { top: "66%", left: "36%", size: 14, depth: 0.8, variant: "blue", path: 4, dur: 25 },
 ];
 
 export default function ParallaxBackground() {
@@ -73,14 +73,15 @@ export default function ParallaxBackground() {
       {DOTS.map((d, i) => (
         <span
           key={i}
-          className={`parallax-dot parallax-${d.variant}`}
+          className={`parallax-dot parallax-${d.variant} parallax-path-${d.path}`}
           style={{
             top: d.top,
             left: d.left,
             width: d.size,
             height: d.size,
             "--depth": d.depth,
-            animationDelay: `${i * 0.6}s`,
+            animationDuration: `${d.dur}s`,
+            animationDelay: `${i * -1.3}s`,
           }}
         />
       ))}
