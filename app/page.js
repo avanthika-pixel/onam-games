@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
+import { COMPANY_NAME, EVENT_NAME, PLAYERS } from "../lib/config";
 import { getSession, setSession } from "../lib/session";
 import PookalamRing from "../components/PookalamRing";
 import Footer from "../components/Footer";
+
+const OTHER = "__other__";
 
 function isFullName(name) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -14,7 +16,8 @@ function isFullName(name) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [nameChoice, setNameChoice] = useState("");
+  const [customName, setCustomName] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,12 +30,17 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    const trimmedName = name.trim();
-    if (!trimmedName || trimmedName.length > 40) {
+    if (!nameChoice) {
+      setError("Select your name from the list.");
+      return;
+    }
+
+    const name = (nameChoice === OTHER ? customName : nameChoice).trim();
+    if (!name || name.length > 40) {
       setError("Enter your name (under 40 characters).");
       return;
     }
-    if (!isFullName(trimmedName)) {
+    if (nameChoice === OTHER && !isFullName(name)) {
       setError("Enter your full name (first and last).");
       return;
     }
@@ -46,7 +54,7 @@ export default function LoginPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmedName, pin: pin.trim() }),
+        body: JSON.stringify({ name, pin: pin.trim() }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -71,22 +79,43 @@ export default function LoginPage() {
         <span className="eyebrow">{COMPANY_NAME.toUpperCase()}</span>
         <h1>{EVENT_NAME}</h1>
         <p className="sub">
-          {COMPANY_NAME}'s Onam + 14th-anniversary celebration. Enter your
-          full name and the event PIN to join.
+          {COMPANY_NAME}'s Onam + 14th-anniversary celebration. Pick your
+          name and enter the event PIN to join.
         </p>
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="name">Your full name</label>
-            <input
+            <label htmlFor="name">Your name</label>
+            <select
               id="name"
-              type="text"
-              value={name}
-              maxLength={40}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Anjali Menon"
-            />
+              value={nameChoice}
+              onChange={(e) => setNameChoice(e.target.value)}
+            >
+              <option value="" disabled>
+                Select your name…
+              </option>
+              {PLAYERS.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+              <option value={OTHER}>Other (not listed)</option>
+            </select>
           </div>
+
+          {nameChoice === OTHER && (
+            <div className="field">
+              <label htmlFor="customName">Type your full name</label>
+              <input
+                id="customName"
+                type="text"
+                value={customName}
+                maxLength={40}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="e.g. Anjali Menon"
+              />
+            </div>
+          )}
 
           <div className="field">
             <label htmlFor="pin">Event PIN</label>
