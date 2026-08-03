@@ -12,6 +12,15 @@
   --tech-blue: #3aa0ff;
   --tech-blue-deep: #1b4e8c;
 
+  --purple-deep: #3a0353;
+  --purple: #804a8a;
+  --peach: #f8d299;
+  --orange: #f59e51;
+  --arcade-bg-1: #2b0a3d;
+  --arcade-bg-2: #1c0524;
+  --arcade-text: #f3e9ff;
+  --arcade-text-dim: rgba(243, 233, 255, 0.65);
+
   --font-display: "Fraunces", serif;
   --font-body: "Manrope", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
@@ -300,6 +309,362 @@ a {
   max-width: 1080px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* ---------- arcade theme (dashboard + leaderboard) ---------- */
+/* Dark purple/maroon backdrop with orange/peach accents — scoped to
+   .shell--arcade so login/admin keep the cream Onam look untouched. */
+
+.shell--arcade {
+  background: linear-gradient(160deg, var(--arcade-bg-1) 0%, var(--purple-deep) 55%, var(--arcade-bg-2) 100%);
+  color: var(--arcade-text);
+}
+
+.shell--arcade .topbar {
+  border-bottom-color: rgba(248, 210, 153, 0.15);
+}
+
+.shell--arcade .brand-eyebrow {
+  color: var(--orange);
+}
+
+.shell--arcade .brand-title {
+  color: var(--peach);
+}
+
+.shell--arcade .who {
+  color: var(--arcade-text);
+}
+
+.shell--arcade .who .team-tag {
+  background: linear-gradient(135deg, var(--orange), var(--peach));
+  color: var(--purple-deep);
+  font-weight: 700;
+}
+
+.shell--arcade .linklike {
+  color: var(--peach);
+}
+
+.shell--arcade .section-title {
+  color: var(--peach);
+}
+
+.shell--arcade .section-sub {
+  color: var(--arcade-text-dim);
+}
+
+.shell--arcade .site-footer {
+  color: rgba(243, 233, 255, 0.4);
+}
+
+.shell--arcade .locked-banner {
+  background: linear-gradient(135deg, var(--orange), var(--peach));
+  color: var(--purple-deep);
+  font-weight: 600;
+}
+
+.shell--arcade .game-hud {
+  color: var(--arcade-text);
+}
+
+.shell--arcade .game-overlay h2 {
+  color: var(--peach);
+}
+
+.shell--arcade .game-overlay p {
+  color: var(--arcade-text-dim);
+}
+
+.shell--arcade .loot-hint {
+  color: var(--arcade-text-dim);
+}
+
+/* ---- dashboard: greeting + stat ring ---- */
+
+.arcade-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.arcade-hero-copy {
+  flex: 1;
+  min-width: 240px;
+}
+
+.arcade-greeting {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+
+.stat-ring-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(248, 210, 153, 0.15);
+  border-radius: 20px;
+  padding: 18px 22px;
+  backdrop-filter: blur(8px);
+}
+
+.stat-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-ring-hole {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--purple-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-ring-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--peach);
+}
+
+.stat-ring-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--arcade-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.stat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stat-legend-name {
+  color: var(--arcade-text-dim);
+  flex: 1;
+  white-space: nowrap;
+}
+
+.stat-legend-score {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--peach);
+}
+
+/* ---- dashboard: glass game cards ---- */
+
+.shell--arcade .game-card {
+  background: linear-gradient(165deg, rgba(128, 74, 138, 0.35), rgba(28, 5, 36, 0.75));
+  border: 1px solid rgba(248, 210, 153, 0.18);
+  border-top: 1px solid rgba(248, 210, 153, 0.18);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  position: relative;
+  overflow: hidden;
+}
+
+.shell--arcade .game-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--accent, var(--orange));
+}
+
+.shell--arcade .game-card h3 {
+  color: var(--peach);
+}
+
+.shell--arcade .game-card p {
+  color: var(--arcade-text-dim);
+}
+
+.shell--arcade .game-card .best {
+  color: var(--accent, var(--orange));
+  font-weight: 700;
+}
+
+.shell--arcade .game-card .btn-play {
+  background: linear-gradient(135deg, var(--orange), var(--peach));
+  color: var(--purple-deep);
+  font-weight: 800;
+}
+
+.shell--arcade .game-card .btn-play:hover {
+  filter: brightness(1.08);
+  background: linear-gradient(135deg, var(--orange), var(--peach));
+  color: var(--purple-deep);
+}
+
+.shell--arcade .game-card .btn-play:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(243, 233, 255, 0.4);
+}
+
+/* ---- leaderboard: game tabs ---- */
+
+.arcade-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.arcade-tab {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(248, 210, 153, 0.18);
+  color: var(--arcade-text-dim);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.arcade-tab.active {
+  background: var(--tab-accent, var(--orange));
+  border-color: var(--tab-accent, var(--orange));
+  color: var(--purple-deep);
+}
+
+.lb-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(248, 210, 153, 0.15);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 32px;
+  backdrop-filter: blur(6px);
+}
+
+.lb-empty {
+  color: var(--arcade-text-dim);
+}
+
+/* ---- leaderboard: podium + avatars, re-themed for dark bg ---- */
+
+.shell--arcade .podium-spot {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(248, 210, 153, 0.18);
+}
+
+.shell--arcade .podium-1 {
+  background: linear-gradient(165deg, rgba(245, 158, 81, 0.35), rgba(248, 210, 153, 0.15));
+  border-color: var(--orange);
+}
+
+.shell--arcade .podium-2 {
+  border-color: #c7c7c7;
+  background: rgba(199, 199, 199, 0.1);
+}
+
+.shell--arcade .podium-3 {
+  border-color: #cd8b5c;
+  background: rgba(205, 139, 92, 0.12);
+}
+
+.shell--arcade .podium-name {
+  color: var(--peach);
+}
+
+.shell--arcade .podium-score {
+  color: var(--arcade-text);
+}
+
+.podium-crown {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--purple-deep);
+  background: linear-gradient(135deg, var(--peach), var(--orange));
+  margin: 0 auto 8px;
+}
+
+.avatar-sm {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  margin: 0;
+}
+
+.shell--arcade .lb-table {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--arcade-text);
+}
+
+.shell--arcade .lb-table th,
+.shell--arcade .lb-table td {
+  border-bottom-color: rgba(248, 210, 153, 0.12);
+}
+
+.shell--arcade .lb-table th {
+  color: var(--arcade-text-dim);
+}
+
+.shell--arcade .lb-table td.score {
+  color: var(--orange);
+}
+
+.lb-row-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .arcade-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stat-ring-card {
+    width: 100%;
+  }
 }
 
 /* ---------- centered card screens (login) ---------- */

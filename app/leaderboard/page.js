@@ -10,10 +10,16 @@ import Footer from "../../components/Footer";
 const POLL_MS = 5000;
 const MEDALS = ["🥇", "🥈", "🥉"];
 
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase();
+}
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const [session, setSessionState] = useState(undefined);
   const [byGame, setByGame] = useState({});
+  const [selectedGame, setSelectedGame] = useState(GAMES[0].id);
 
   useEffect(() => {
     const s = getSession();
@@ -45,63 +51,80 @@ export default function LeaderboardPage() {
     return <div className="center-screen">Loading…</div>;
   }
 
+  const activeGame = GAMES.find((g) => g.id === selectedGame) || GAMES[0];
+  const rows = byGame[activeGame.id] || [];
+  const podium = rows.slice(0, 3);
+  const rest = rows.slice(3);
+
   return (
-    <div className="shell">
+    <div className="shell shell--arcade">
       <TopBar session={session} />
       <div className="content">
         <h2 className="section-title">Leaderboard — Level 14</h2>
         <p className="section-sub">Live — updates automatically every few seconds.</p>
 
-        {GAMES.map((g) => {
-          const rows = byGame[g.id] || [];
-          const podium = rows.slice(0, 3);
-          const rest = rows.slice(3);
+        <div className="arcade-tabs">
+          {GAMES.map((g) => (
+            <button
+              key={g.id}
+              className={`arcade-tab ${g.id === selectedGame ? "active" : ""}`}
+              style={{ "--tab-accent": g.accent }}
+              onClick={() => setSelectedGame(g.id)}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
 
-          return (
-            <div className="lb-block" key={g.id}>
-              <h3 className="game-lb-title" style={{ color: g.accent }}>
-                {g.name}
-              </h3>
+        <div className="lb-panel">
+          <h3 className="game-lb-title" style={{ color: activeGame.accent }}>
+            {activeGame.name}
+          </h3>
 
-              {podium.length === 0 ? (
-                <p style={{ color: "#a19a89" }}>No scores yet — be the first to play.</p>
-              ) : (
-                <div className="podium">
-                  {podium.map((r, i) => (
-                    <div className={`podium-spot podium-${i + 1}`} key={r.player_name}>
-                      <div className="podium-medal">{MEDALS[i]}</div>
-                      <div className="podium-name">{r.player_name}</div>
-                      <div className="podium-score">{r.best_score}</div>
-                    </div>
-                  ))}
+          {podium.length === 0 ? (
+            <p className="lb-empty">No scores yet — be the first to play.</p>
+          ) : (
+            <div className="podium">
+              {podium.map((r, i) => (
+                <div className={`podium-spot podium-${i + 1}`} key={r.player_name}>
+                  {i === 0 && <div className="podium-crown">👑</div>}
+                  <div className="avatar">{initials(r.player_name)}</div>
+                  <div className="podium-medal">{MEDALS[i]}</div>
+                  <div className="podium-name">{r.player_name}</div>
+                  <div className="podium-score">{r.best_score}</div>
                 </div>
-              )}
-
-              {rest.length > 0 && (
-                <div className="lb-table-wrap">
-                  <table className="lb-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Player</th>
-                        <th>Score</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rest.map((r, i) => (
-                        <tr key={r.player_name}>
-                          <td>{i + 4}</td>
-                          <td>{r.player_name}</td>
-                          <td className="score">{r.best_score}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              ))}
             </div>
-          );
-        })}
+          )}
+
+          {rest.length > 0 && (
+            <div className="lb-table-wrap">
+              <table className="lb-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rest.map((r, i) => (
+                    <tr key={r.player_name}>
+                      <td>{i + 4}</td>
+                      <td>
+                        <div className="lb-row-player">
+                          <div className="avatar avatar-sm">{initials(r.player_name)}</div>
+                          {r.player_name}
+                        </div>
+                      </td>
+                      <td className="score">{r.best_score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
       <Footer />
     </div>

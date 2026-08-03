@@ -12,6 +12,27 @@ import AnniversaryRun from "../../games/AnniversaryRun";
 import SadyaSort from "../../games/SadyaSort";
 import LootSwipe from "../../games/LootSwipe";
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 5) return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function ringGradient(games, best, total) {
+  if (!total) return "conic-gradient(rgba(255,255,255,0.08) 0deg 360deg)";
+  let acc = 0;
+  const stops = games.map((g) => {
+    const val = best[g.id] || 0;
+    const start = (acc / total) * 360;
+    acc += val;
+    const end = (acc / total) * 360;
+    return `${g.accent} ${start}deg ${end}deg`;
+  });
+  return `conic-gradient(${stops.join(", ")})`;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [session, setSessionState] = useState(undefined); // undefined = loading, null = signed out
@@ -70,8 +91,10 @@ export default function DashboardPage() {
     return <div className="center-screen">Loading…</div>;
   }
 
+  const total = GAMES.reduce((sum, g) => sum + (best[g.id] || 0), 0);
+
   return (
-    <div className="shell">
+    <div className="shell shell--arcade">
       <TopBar session={session} />
       <div className="content">
         {!activeGame && (
@@ -89,11 +112,36 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <h2 className="section-title">Welcome to Level 14</h2>
-            <p className="section-sub">
-              Pick a game and climb the leaderboard — only your best score in
-              each game counts.
-            </p>
+            <div className="arcade-hero">
+              <div className="arcade-hero-copy">
+                <span className="arcade-greeting">
+                  {getGreeting()}, {session.name.split(" ")[0].toUpperCase()}
+                </span>
+                <h2 className="section-title">Welcome to Level 14</h2>
+                <p className="section-sub">
+                  Pick a game and climb the leaderboard — only your best score
+                  in each game counts.
+                </p>
+              </div>
+
+              <div className="stat-ring-card">
+                <div className="stat-ring" style={{ background: ringGradient(GAMES, best, total) }}>
+                  <div className="stat-ring-hole">
+                    <span className="stat-ring-value">{total}</span>
+                    <span className="stat-ring-label">Total score</span>
+                  </div>
+                </div>
+                <div className="stat-legend">
+                  {GAMES.map((g) => (
+                    <div className="stat-legend-item" key={g.id}>
+                      <span className="stat-dot" style={{ background: g.accent }} />
+                      <span className="stat-legend-name">{g.name}</span>
+                      <span className="stat-legend-score">{best[g.id] || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <div className="game-grid">
               {GAMES.map((g) => (
