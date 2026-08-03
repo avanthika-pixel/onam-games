@@ -9,10 +9,13 @@ const ITEMS = [
   { id: "banana", label: "Banana chips", emoji: "🍌" },
   { id: "curry", label: "Curry", emoji: "🍛" },
   { id: "papadam", label: "Papadam", emoji: "🫓" },
+  { id: "sambar", label: "Sambar", emoji: "🍲" },
+  { id: "thoran", label: "Thoran", emoji: "🥬" },
+  { id: "olan", label: "Olan", emoji: "🎃" },
 ];
 
-const ROUND_TIME = 60;
-const MEMORIZE_TIME = 5;
+const ROUND_TIME = 75;
+const MEMORIZE_TIME = 7;
 const WRONG_PENALTY = 5;
 
 function shuffled(arr) {
@@ -160,7 +163,7 @@ export default function SadyaSort({ onFinish }) {
         <div className="game-overlay">
           <h2>Sadya Sort</h2>
           <p>
-            The leaf shows all six dishes in place for {MEMORIZE_TIME} seconds —
+            The leaf shows all {ITEMS.length} dishes in place for {MEMORIZE_TIME} seconds —
             memorize where each one goes. Then the hints vanish and you drag
             each dish from the tray onto its correct spot from memory. Wrong
             guesses cost you {WRONG_PENALTY} points each, so guess carefully.
@@ -224,6 +227,32 @@ export default function SadyaSort({ onFinish }) {
         <div className="game-overlay">
           <h2>{Object.keys(placed).length === ITEMS.length ? "Leaf complete!" : "Time's up!"}</h2>
           <p>Score: {score}</p>
+
+          {(() => {
+            const missed = ITEMS.filter((item) => !placed[item.id]);
+            const correctCount = ITEMS.length - missed.length;
+            return (
+              <div className="sadya-review">
+                <p className="sadya-review-summary">
+                  {correctCount}/{ITEMS.length} placed correctly · {misses} wrong{" "}
+                  {misses === 1 ? "guess" : "guesses"}
+                </p>
+                {missed.length > 0 && (
+                  <>
+                    <p className="sadya-review-label">Where you went wrong:</p>
+                    <div className="sadya-review-chips">
+                      {missed.map((item) => (
+                        <span className="sadya-review-chip" key={item.id}>
+                          {item.emoji} {item.label}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
+
           <button className="btn btn-primary" onClick={start} style={{ marginRight: 10 }}>
             Play again
           </button>
