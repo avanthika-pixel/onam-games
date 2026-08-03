@@ -1160,6 +1160,11 @@ a {
   opacity: 1;
 }
 
+.sadya-slot.wrong {
+  background: rgba(122, 31, 43, 0.35);
+  border-color: var(--maroon);
+}
+
 .sadya-tray {
   display: flex;
   flex-wrap: wrap;

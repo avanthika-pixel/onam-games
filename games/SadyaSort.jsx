@@ -12,6 +12,8 @@ const ITEMS = [
 ];
 
 const ROUND_TIME = 60;
+const MEMORIZE_TIME = 5;
+const WRONG_PENALTY = 5;
 
 function shuffled(arr) {
   const copy = [...arr];
@@ -24,12 +26,16 @@ function shuffled(arr) {
 
 export default function SadyaSort({ onFinish }) {
   const [phase, setPhase] = useState("ready");
+  const [subPhase, setSubPhase] = useState("memorize"); // "memorize" | "drag"
   const [slotTargets, setSlotTargets] = useState([]); // ITEMS shuffled into 6 slot positions
   const [trayOrder, setTrayOrder] = useState([]);
   const [placed, setPlaced] = useState({}); // { [itemId]: true } once correctly dropped
+  const [memorizeLeft, setMemorizeLeft] = useState(MEMORIZE_TIME);
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
+  const [misses, setMisses] = useState(0);
   const [score, setScore] = useState(0);
   const [dragging, setDragging] = useState(null); // { itemId, x, y }
+  const [wrongSlotId, setWrongSlotId] = useState(null);
 
   const slotRefs = useRef({});
   const draggingRef = useRef(null);
@@ -38,34 +44,52 @@ export default function SadyaSort({ onFinish }) {
     setSlotTargets(shuffled(ITEMS));
     setTrayOrder(shuffled(ITEMS));
     setPlaced({});
+    setMisses(0);
+    setMemorizeLeft(MEMORIZE_TIME);
     setTimeLeft(ROUND_TIME);
     setScore(0);
+    setSubPhase("memorize");
     setPhase("playing");
   }, []);
 
-  const finish = useCallback((placedMap, timeLeftAtEnd) => {
+  const finish = useCallback((placedMap, timeLeftAtEnd, missCount) => {
     const correct = Object.keys(placedMap).length;
-    const finalScore = correct * 15 + Math.round(timeLeftAtEnd * 0.5);
+    const finalScore = Math.max(
+      0,
+      correct * 15 + Math.round(timeLeftAtEnd * 0.5) - missCount * WRONG_PENALTY
+    );
     setScore(finalScore);
     setPhase("done");
   }, []);
 
+  // Memorize countdown — the leaf is fully visible and nothing is
+  // draggable yet, then the hints disappear and the real round starts.
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || subPhase !== "memorize") return;
+    if (memorizeLeft <= 0) {
+      setSubPhase("drag");
+      return;
+    }
+    const t = setTimeout(() => setMemorizeLeft((v) => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, subPhase, memorizeLeft]);
+
+  useEffect(() => {
+    if (phase !== "playing" || subPhase !== "drag") return;
     if (timeLeft <= 0) {
-      finish(placed, 0);
+      finish(placed, 0, misses);
       return;
     }
     const t = setTimeout(() => setTimeLeft((v) => v - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, timeLeft, placed, finish]);
+  }, [phase, subPhase, timeLeft, placed, misses, finish]);
 
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || subPhase !== "drag") return;
     if (Object.keys(placed).length === ITEMS.length) {
-      finish(placed, timeLeft);
+      finish(placed, timeLeft, misses);
     }
-  }, [placed, phase, timeLeft, finish]);
+  }, [placed, phase, subPhase, timeLeft, misses, finish]);
 
   function onPointerDown(e, itemId) {
     if (placed[itemId]) return;
@@ -93,16 +117,21 @@ export default function SadyaSort({ onFinish }) {
       const el = slotRefs.current[slot.id];
       if (!el) continue;
       const rect = el.getBoundingClientRect();
-      if (
+      const within =
         e.clientX >= rect.left &&
         e.clientX <= rect.right &&
         e.clientY >= rect.top &&
-        e.clientY <= rect.bottom &&
-        slot.id === itemId
-      ) {
+        e.clientY <= rect.bottom;
+      if (!within) continue;
+
+      if (slot.id === itemId) {
         setPlaced((p) => ({ ...p, [itemId]: true }));
-        return;
+      } else {
+        setMisses((m) => m + 1);
+        setWrongSlotId(slot.id);
+        setTimeout(() => setWrongSlotId(null), 300);
       }
+      return;
     }
   }
 
@@ -115,20 +144,26 @@ export default function SadyaSort({ onFinish }) {
   }, []);
 
   const draggingItem = dragging ? ITEMS.find((i) => i.id === dragging.itemId) : null;
+  const showHints = subPhase === "memorize";
 
   return (
     <div className="game-screen">
       <div className="game-hud">
         <span>Sadya Sort</span>
-        <span>{phase === "playing" ? `Time: ${timeLeft}s` : ""}</span>
+        <span>
+          {phase === "playing" && subPhase === "memorize" && `Memorize: ${memorizeLeft}s`}
+          {phase === "playing" && subPhase === "drag" && `Time: ${timeLeft}s · Misses: ${misses}`}
+        </span>
       </div>
 
       {phase === "ready" && (
         <div className="game-overlay">
           <h2>Sadya Sort</h2>
           <p>
-            Drag each dish from the tray onto its matching spot on the leaf
-            (shown as a faint outline). Place all six before time runs out.
+            The leaf shows all six dishes in place for {MEMORIZE_TIME} seconds —
+            memorize where each one goes. Then the hints vanish and you drag
+            each dish from the tray onto its correct spot from memory. Wrong
+            guesses cost you {WRONG_PENALTY} points each, so guess carefully.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
@@ -143,27 +178,36 @@ export default function SadyaSort({ onFinish }) {
               <div
                 key={slot.id}
                 ref={(el) => (slotRefs.current[slot.id] = el)}
-                className={`sadya-slot ${placed[slot.id] ? "filled" : ""}`}
+                className={`sadya-slot ${placed[slot.id] ? "filled" : ""} ${
+                  wrongSlotId === slot.id ? "wrong" : ""
+                }`}
               >
-                <span className="sadya-slot-emoji">{slot.emoji}</span>
+                <span
+                  className="sadya-slot-emoji"
+                  style={{ opacity: placed[slot.id] ? 1 : showHints ? 1 : 0 }}
+                >
+                  {slot.emoji}
+                </span>
               </div>
             ))}
           </div>
 
-          <div className="sadya-tray">
-            {trayOrder
-              .filter((item) => !placed[item.id])
-              .map((item) => (
-                <button
-                  key={item.id}
-                  className="sadya-tray-item"
-                  onPointerDown={(e) => onPointerDown(e, item.id)}
-                >
-                  <span>{item.emoji}</span>
-                  <small>{item.label}</small>
-                </button>
-              ))}
-          </div>
+          {subPhase === "drag" && (
+            <div className="sadya-tray">
+              {trayOrder
+                .filter((item) => !placed[item.id])
+                .map((item) => (
+                  <button
+                    key={item.id}
+                    className="sadya-tray-item"
+                    onPointerDown={(e) => onPointerDown(e, item.id)}
+                  >
+                    <span>{item.emoji}</span>
+                    <small>{item.label}</small>
+                  </button>
+                ))}
+            </div>
+          )}
 
           {draggingItem && (
             <div
