@@ -12,9 +12,15 @@ const ITEMS = [
   { id: "sambar", label: "Sambar", emoji: "🍲" },
   { id: "thoran", label: "Thoran", emoji: "🥬" },
   { id: "olan", label: "Olan", emoji: "🎃" },
+  { id: "avial", label: "Avial", emoji: "🥗" },
+  { id: "rasam", label: "Rasam", emoji: "🍵" },
+  { id: "pachadi", label: "Pachadi", emoji: "🥣" },
+  { id: "puliinji", label: "Puli Inji", emoji: "🫚" },
+  { id: "naranga", label: "Naranga Achar", emoji: "🍋" },
+  { id: "sharkara", label: "Sharkara Varatti", emoji: "🍯" },
 ];
 
-const ROUND_TIME = 90;
+const ROUND_TIME = 150;
 const WRONG_PENALTY = 4;
 const MATCH_DELAY_MS = 450;
 const MISMATCH_DELAY_MS = 800;
