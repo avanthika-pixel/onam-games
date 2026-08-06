@@ -316,8 +316,23 @@ a {
    .shell--arcade so login/admin keep the cream Onam look untouched. */
 
 .shell--arcade {
-  background: linear-gradient(160deg, var(--arcade-bg-1) 0%, var(--purple-deep) 55%, var(--arcade-bg-2) 100%);
+  background-color: var(--purple-deep);
+  background-image: linear-gradient(180deg, rgba(8, 3, 18, 0.6), rgba(8, 3, 18, 0.78)),
+    url("/dashboard-bg.png");
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
+  background-position: center, center;
+  background-attachment: fixed, fixed;
   color: var(--arcade-text);
+}
+
+/* Same fix as the login hero: on portrait/narrow screens "cover" crops this
+   wide 3:2 photo down to its empty middle, hiding the temple art on the
+   left and the neon city art on the right. */
+@media (max-aspect-ratio: 3/2) {
+  .shell--arcade {
+    background-size: cover, contain;
+  }
 }
 
 .shell--arcade .topbar {
