@@ -65,6 +65,7 @@ export default function PookalamEcho({ onFinish }) {
 
   useEffect(() => {
     if (phase !== "playing" || subPhase !== "showing") return;
+    cancelRef.current = false;
     playSequence(sequenceRef.current, () => setSubPhase("waiting"));
     return () => {
       cancelRef.current = true;

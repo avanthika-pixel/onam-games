@@ -1330,13 +1330,33 @@ a {
 }
 
 .bugsquash-bug {
-  background: rgba(31, 92, 61, 0.25);
+  background: rgba(31, 92, 61, 0.4);
   border-color: var(--leaf);
+  border-width: 3px;
 }
 
 .bugsquash-powerup {
-  background: rgba(201, 154, 46, 0.3);
-  border-color: var(--gold);
+  background: rgba(201, 154, 46, 0.4);
+  border-color: var(--maroon);
+  border-width: 3px;
+}
+
+.bugsquash-flash-good {
+  background: var(--leaf) !important;
+  border-color: var(--leaf) !important;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px !important;
+}
+
+.bugsquash-flash-bad {
+  background: var(--maroon) !important;
+  border-color: var(--maroon) !important;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px !important;
 }
 
 /* ---------- Loot Swipe ---------- */

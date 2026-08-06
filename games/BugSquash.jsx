@@ -16,6 +16,7 @@ export default function BugSquash({ onFinish }) {
   const [squashed, setSquashed] = useState(0);
   const [misses, setMisses] = useState(0);
   const [, setTick] = useState(0);
+  const [flash, setFlash] = useState(null); // { index, kind: "good" | "bad", label }
 
   const cellsRef = useRef(Array.from({ length: GRID_SIZE }, () => null));
   const elapsedRef = useRef(0);
@@ -89,7 +90,8 @@ export default function BugSquash({ onFinish }) {
     if (!cell) return;
     cellsRef.current[i] = null;
 
-    if (cell.kind === "bug") {
+    const isBug = cell.kind === "bug";
+    if (isBug) {
       scoreRef.current += BUG_POINTS;
       squashedRef.current += 1;
       setSquashed(squashedRef.current);
@@ -99,6 +101,10 @@ export default function BugSquash({ onFinish }) {
       setMisses(missesRef.current);
     }
     setScore(scoreRef.current);
+
+    setFlash({ index: i, kind: isBug ? "good" : "bad", label: isBug ? `+${BUG_POINTS}` : `-${POWERUP_PENALTY}` });
+    setTimeout(() => setFlash((f) => (f && f.index === i ? null : f)), 450);
+
     setTick((t) => t + 1);
   }
 
@@ -129,16 +135,21 @@ export default function BugSquash({ onFinish }) {
 
       {phase === "playing" && (
         <div className="bugsquash-board">
-          {cellsRef.current.map((cell, i) => (
-            <button
-              key={i}
-              type="button"
-              className={`bugsquash-cell ${cell ? `bugsquash-${cell.kind}` : ""}`}
-              onClick={() => tapCell(i)}
-            >
-              {cell ? cell.emoji : ""}
-            </button>
-          ))}
+          {cellsRef.current.map((cell, i) => {
+            const isFlashing = flash?.index === i;
+            return (
+              <button
+                key={i}
+                type="button"
+                className={`bugsquash-cell ${cell ? `bugsquash-${cell.kind}` : ""} ${
+                  isFlashing ? `bugsquash-flash-${flash.kind}` : ""
+                }`}
+                onClick={() => tapCell(i)}
+              >
+                {isFlashing ? flash.label : cell ? cell.emoji : ""}
+              </button>
+            );
+          })}
         </div>
       )}
 
