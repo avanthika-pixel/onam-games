@@ -11,6 +11,8 @@ import Pookalam from "../../games/Pookalam";
 import AnniversaryRun from "../../games/AnniversaryRun";
 import SadyaSort from "../../games/SadyaSort";
 import LootSwipe from "../../games/LootSwipe";
+import PookalamEcho from "../../games/PookalamEcho";
+import BugSquash from "../../games/BugSquash";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -180,6 +182,12 @@ export default function DashboardPage() {
         )}
         {activeGame === "lootswipe" && (
           <LootSwipe onFinish={(score) => handleFinish("lootswipe", score)} />
+        )}
+        {activeGame === "pookalamecho" && (
+          <PookalamEcho onFinish={(score) => handleFinish("pookalamecho", score)} />
+        )}
+        {activeGame === "bugsquash" && (
+          <BugSquash onFinish={(score) => handleFinish("bugsquash", score)} />
         )}
       </div>
       <Footer />
