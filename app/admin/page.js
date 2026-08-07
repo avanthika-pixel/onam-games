@@ -153,51 +153,59 @@ export default function AdminPage() {
                 {GAMES.map((g) => (
                   <th key={g.id}>{g.name}</th>
                 ))}
+                <th>Total</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {players.map((p) => (
-                <tr key={p.name}>
-                  <td>{p.name}</td>
-                  {GAMES.map((g) => {
-                    const score = p.scores[g.id];
-                    const key = `${p.name}:${g.id}`;
-                    return (
-                      <td key={g.id}>
-                        {score === undefined ? (
-                          "—"
-                        ) : (
-                          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            {score}
-                            <button
-                              type="button"
-                              className="linklike"
-                              style={{ fontSize: 12 }}
-                              disabled={scoresBusy === key}
-                              onClick={() => deleteScore(p.name, g.id)}
-                              title={`Remove ${p.name}'s ${g.name} score`}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td>
-                    <button
-                      type="button"
-                      className="btn"
-                      style={{ width: "auto", background: "var(--maroon)", color: "var(--white)" }}
-                      disabled={scoresBusy === `${p.name}:all`}
-                      onClick={() => deleteScore(p.name, null)}
-                    >
-                      Remove all
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {[...players]
+                .map((p) => ({
+                  ...p,
+                  total: GAMES.reduce((sum, g) => sum + (p.scores[g.id] || 0), 0),
+                }))
+                .sort((a, b) => b.total - a.total)
+                .map((p) => (
+                  <tr key={p.name}>
+                    <td>{p.name}</td>
+                    {GAMES.map((g) => {
+                      const score = p.scores[g.id];
+                      const key = `${p.name}:${g.id}`;
+                      return (
+                        <td key={g.id}>
+                          {score === undefined ? (
+                            "—"
+                          ) : (
+                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              {score}
+                              <button
+                                type="button"
+                                className="linklike"
+                                style={{ fontSize: 12 }}
+                                disabled={scoresBusy === key}
+                                onClick={() => deleteScore(p.name, g.id)}
+                                title={`Remove ${p.name}'s ${g.name} score`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="score">{p.total}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn"
+                        style={{ width: "auto", background: "var(--maroon)", color: "var(--white)" }}
+                        disabled={scoresBusy === `${p.name}:all`}
+                        onClick={() => deleteScore(p.name, null)}
+                      >
+                        Remove all
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
