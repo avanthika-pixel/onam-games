@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [pinStatus, setPinStatus] = useState("");
   const [players, setPlayers] = useState([]);
   const [scoresBusy, setScoresBusy] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
 
   async function unlock(e) {
     e.preventDefault();
@@ -60,6 +61,22 @@ export default function AdminPage() {
     setPauseBusy(false);
   }
 
+  function copyLeaderboard() {
+    const header = ["Player", ...GAMES.map((g) => g.name), "Total"];
+    const rows = rankedPlayers.map((p) => [
+      p.name,
+      ...GAMES.map((g) => p.scores[g.id] ?? 0),
+      p.total,
+    ]);
+    const text = [header, ...rows].map((row) => row.join("\t")).join("\n");
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => setCopyStatus("Copied! Paste into a spreadsheet."))
+      .catch(() => setCopyStatus("Couldn't copy — try selecting the table manually."));
+    setTimeout(() => setCopyStatus(""), 4000);
+  }
+
   async function savePin() {
     setPinStatus("");
     const res = await fetch("/api/admin/pin", {
@@ -97,6 +114,13 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const rankedPlayers = [...players]
+    .map((p) => ({
+      ...p,
+      total: GAMES.reduce((sum, g) => sum + (p.scores[g.id] || 0), 0),
+    }))
+    .sort((a, b) => b.total - a.total);
 
   return (
     <div className="content">
@@ -145,26 +169,31 @@ export default function AdminPage() {
       {players.length === 0 && <p style={{ color: "#6b6355" }}>No scores submitted yet.</p>}
 
       {players.length > 0 && (
-        <div className="lb-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Player</th>
-                {GAMES.map((g) => (
-                  <th key={g.id}>{g.name}</th>
-                ))}
-                <th>Total</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...players]
-                .map((p) => ({
-                  ...p,
-                  total: GAMES.reduce((sum, g) => sum + (p.scores[g.id] || 0), 0),
-                }))
-                .sort((a, b) => b.total - a.total)
-                .map((p) => (
+        <>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ width: "auto", marginBottom: 16 }}
+            onClick={copyLeaderboard}
+          >
+            📋 Copy full leaderboard
+          </button>
+          {copyStatus && <p style={{ marginTop: -8, marginBottom: 16 }}>{copyStatus}</p>}
+
+          <div className="lb-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  {GAMES.map((g) => (
+                    <th key={g.id}>{g.name}</th>
+                  ))}
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankedPlayers.map((p) => (
                   <tr key={p.name}>
                     <td>{p.name}</td>
                     {GAMES.map((g) => {
@@ -206,9 +235,10 @@ export default function AdminPage() {
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
