@@ -11,9 +11,12 @@ const ITEMS = [
   { id: "rice", label: "Rice", image: "/sadya/rice.jpg" },
   { id: "salt", label: "Salt", image: "/sadya/salt.jpg" },
   { id: "sambar", label: "Sambar", image: "/sadya/sambar.png" },
+  { id: "chakka", label: "Chakka Varuthathu", image: "/sadya/chakka-varuthathu.png" },
+  { id: "beetroot", label: "Beetroot Pachadi", image: "/sadya/beetroot-pachadi.png" },
+  { id: "olan", label: "Olan", image: "/sadya/olan.png" },
 ];
 
-const ROUND_TIME = 80;
+const ROUND_TIME = 100;
 const WRONG_PENALTY = 4;
 const MATCH_DELAY_MS = 450;
 const MISMATCH_DELAY_MS = 800;
