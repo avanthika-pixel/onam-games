@@ -169,7 +169,7 @@ export default function AnniversaryRun({ onFinish }) {
   return (
     <div className="game-screen">
       <div className="game-hud">
-        <span>14 Candles</span>
+        <span>14 Years & Running</span>
         <span>{phase === "playing" ? `Candles: ${liveCollected}` : ""}</span>
       </div>
       <div className="game-canvas-wrap" style={{ "--game-w": `${W}px`, "--game-ratio": W / H }}>
@@ -177,7 +177,7 @@ export default function AnniversaryRun({ onFinish }) {
       </div>
       {phase === "ready" && (
         <div className="game-overlay">
-          <h2>14 Candles</h2>
+          <h2>14 Years & Running</h2>
           <p>
             An endless runner — there's no finish line. Tap the canvas, press
             space, or hit the up arrow to jump over obstacles and keep
