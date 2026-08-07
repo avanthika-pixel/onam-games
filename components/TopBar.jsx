@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import PookalamRing from "./PookalamRing";
+import Logo from "./Logo";
 import { clearSession } from "../lib/session";
 import { COMPANY_NAME, EVENT_NAME } from "../lib/config";
 
@@ -16,7 +16,7 @@ export default function TopBar({ session }) {
   return (
     <div className="topbar">
       <div className="brand">
-        <PookalamRing size={26} />
+        <Logo size={26} />
         <div className="brand-text">
           <span className="brand-eyebrow">{COMPANY_NAME.toUpperCase()}</span>
           <span className="brand-title">{EVENT_NAME}</span>

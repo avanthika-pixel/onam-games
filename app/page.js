@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COMPANY_NAME, EVENT_NAME, PLAYERS } from "../lib/config";
 import { getSession, setSession } from "../lib/session";
-import PookalamRing from "../components/PookalamRing";
+import Logo from "../components/Logo";
 import Footer from "../components/Footer";
 
 function isFullName(name) {
@@ -87,7 +87,7 @@ export default function LoginPage() {
     <div className="center-screen center-screen--hero">
       <div className="card">
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
-          <PookalamRing size={56} />
+          <Logo size={56} />
         </div>
         <span className="eyebrow">{COMPANY_NAME.toUpperCase()}</span>
         <h1>{EVENT_NAME}</h1>
