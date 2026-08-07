@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 const W = 420;
 const H = 320;
 const GROUND_Y = H - 50;
-const GOAL_CANDLES = 14;
 
 export default function AnniversaryRun({ onFinish }) {
   const canvasRef = useRef(null);
@@ -16,6 +15,9 @@ export default function AnniversaryRun({ onFinish }) {
   const lastShownRef = useRef(0);
 
   function resetState() {
+    // A fresh randomized "feel" every run: speed, ramp rate, and spawn
+    // density all vary, so no two playthroughs are the same difficulty
+    // curve, on top of individual obstacles/candles being randomized too.
     stateRef.current = {
       y: GROUND_Y,
       vy: 0,
@@ -23,12 +25,17 @@ export default function AnniversaryRun({ onFinish }) {
       obstacles: [],
       candles: [],
       spawnTimer: 600,
-      candleTimer: 800,
-      speed: 4,
+      candleTimer: 500 + Math.random() * 400,
+      baseSpeed: 3.6 + Math.random() * 0.8,
+      speed: 0,
+      rampDivisor: 1300 + Math.random() * 500,
+      obstacleGapBase: 800 + Math.random() * 300,
+      candleGapBase: 550 + Math.random() * 350,
       distance: 0,
       collected: 0,
       alive: true,
     };
+    stateRef.current.speed = stateRef.current.baseSpeed;
     lastShownRef.current = 0;
     setLiveCollected(0);
   }
@@ -56,8 +63,7 @@ export default function AnniversaryRun({ onFinish }) {
       const s = stateRef.current;
       if (s.alive) {
         s.distance += s.speed;
-        // Ramps up faster than before — later obstacles come at you quicker.
-        s.speed = 4 + s.distance / 1500;
+        s.speed = s.baseSpeed + s.distance / s.rampDivisor;
 
         s.vy += 0.6;
         s.y += s.vy;
@@ -69,13 +75,12 @@ export default function AnniversaryRun({ onFinish }) {
 
         s.spawnTimer -= 16;
         if (s.spawnTimer <= 0) {
-          // Randomized size and gap so obstacles are no longer perfectly
-          // evenly spaced/identical — each one needs a fresh read, not a
-          // memorized rhythm.
+          // Randomized size and gap so obstacles are never evenly spaced or
+          // identical between — or within — runs.
           const w = 16 + Math.random() * 16; // 16-32
           const h = 22 + Math.random() * 24; // 22-46
           s.obstacles.push({ x: W + 20, w, h });
-          const base = Math.max(950 - s.distance / 6, 420);
+          const base = Math.max(s.obstacleGapBase - s.distance / 6, 400);
           const jitter = (Math.random() - 0.5) * 320;
           s.spawnTimer = Math.max(base + jitter, 380);
         }
@@ -83,9 +88,11 @@ export default function AnniversaryRun({ onFinish }) {
         s.obstacles = s.obstacles.filter((o) => o.x > -40);
 
         s.candleTimer -= 16;
-        if (s.candleTimer <= 0 && s.collected < GOAL_CANDLES) {
-          s.candles.push({ x: W + 20, y: GROUND_Y - 60 - Math.random() * 40 });
-          s.candleTimer = 700;
+        if (s.candleTimer <= 0) {
+          // Candles never run out — this is an endless runner, not a
+          // "collect 14 and stop" game. 14 is just the anniversary theme.
+          s.candles.push({ x: W + 20, y: GROUND_Y - 40 - Math.random() * 90 });
+          s.candleTimer = s.candleGapBase + (Math.random() - 0.5) * 300;
         }
         s.candles.forEach((c) => (c.x -= s.speed));
         s.candles = s.candles.filter((c) => c.x > -30);
@@ -107,11 +114,6 @@ export default function AnniversaryRun({ onFinish }) {
         if (s.collected !== lastShownRef.current) {
           lastShownRef.current = s.collected;
           setLiveCollected(s.collected);
-        }
-
-        if (s.collected >= GOAL_CANDLES) {
-          s.alive = false;
-          s.won = true;
         }
 
         if (!s.alive) {
@@ -168,7 +170,7 @@ export default function AnniversaryRun({ onFinish }) {
     <div className="game-screen">
       <div className="game-hud">
         <span>14 Candles</span>
-        <span>{phase === "playing" ? `Candles: ${liveCollected}/${GOAL_CANDLES}` : ""}</span>
+        <span>{phase === "playing" ? `Candles: ${liveCollected}` : ""}</span>
       </div>
       <div className="game-canvas-wrap" style={{ "--game-w": `${W}px`, "--game-ratio": W / H }}>
         <canvas ref={canvasRef} width={W} height={H} onClick={jump} />
@@ -177,10 +179,11 @@ export default function AnniversaryRun({ onFinish }) {
         <div className="game-overlay">
           <h2>14 Candles</h2>
           <p>
-            Tap the canvas, press space, or hit the up arrow to jump.
-            Collect all 14 candles — one for every year — while dodging
-            obstacles that vary in size and spacing, and come faster the
-            further you run.
+            An endless runner — there's no finish line. Tap the canvas, press
+            space, or hit the up arrow to jump over obstacles and keep
+            collecting candles for as long as you can survive. Obstacles and
+            candles are placed differently every run, and it only gets
+            faster the further you go.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
@@ -189,8 +192,10 @@ export default function AnniversaryRun({ onFinish }) {
       )}
       {phase === "done" && (
         <div className="game-overlay">
-          <h2>{stateRef.current?.won ? "All 14 candles lit!" : "Tripped up!"}</h2>
-          <p>Score: {finalScore}</p>
+          <h2>Tripped up!</h2>
+          <p>
+            {liveCollected} candles collected · Score: {finalScore}
+          </p>
           <button className="btn btn-primary" onClick={start} style={{ marginRight: 10 }}>
             Play again
           </button>
