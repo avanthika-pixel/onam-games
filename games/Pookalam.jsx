@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 
-const COLORS = ["#c99a2e", "#7a1f2b", "#1f5c3d", "#e8a93b", "#2b4a7a"];
+const COLORS = ["#c99a2e", "#7a1f2b", "#1f5c3d", "#2b4a7a", "#804a8a"];
 const RINGS = [6, 10, 14]; // petals per ring, outer to inner-ish
 const ROUND_TIME = 30; // seconds
-const MEMORIZE_TIME = 6; // seconds
 const WRONG_PENALTY = 3;
 
 function shuffled(arr) {
@@ -38,12 +37,10 @@ function buildTarget() {
 
 export default function Pookalam({ onFinish }) {
   const [phase, setPhase] = useState("ready");
-  const [subPhase, setSubPhase] = useState("memorize"); // "memorize" | "fill"
   const [target, setTarget] = useState([]);
   const [filled, setFilled] = useState({});
   const [paletteOrder, setPaletteOrder] = useState(COLORS);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
-  const [memorizeLeft, setMemorizeLeft] = useState(MEMORIZE_TIME);
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME);
   const [misses, setMisses] = useState(0);
   const [score, setScore] = useState(0);
@@ -56,11 +53,9 @@ export default function Pookalam({ onFinish }) {
     setFilled({});
     setPaletteOrder(palette);
     setSelectedColor(palette[0]);
-    setMemorizeLeft(MEMORIZE_TIME);
     setTimeLeft(ROUND_TIME);
     setMisses(0);
     missesRef.current = 0;
-    setSubPhase("memorize");
     setPhase("playing");
   }, []);
 
@@ -79,33 +74,22 @@ export default function Pookalam({ onFinish }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filled, timeLeft]);
 
-  // Memorize countdown — the full pattern is shown, nothing is tappable yet.
   useEffect(() => {
-    if (phase !== "playing" || subPhase !== "memorize") return;
-    if (memorizeLeft <= 0) {
-      setSubPhase("fill");
-      return;
-    }
-    const t = setTimeout(() => setMemorizeLeft((v) => v - 1), 1000);
-    return () => clearTimeout(t);
-  }, [phase, subPhase, memorizeLeft]);
-
-  useEffect(() => {
-    if (phase !== "playing" || subPhase !== "fill") return;
+    if (phase !== "playing") return;
     if (timeLeft <= 0) {
       finish();
       return;
     }
     const t = setTimeout(() => setTimeLeft((v) => v - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, subPhase, timeLeft, finish]);
+  }, [phase, timeLeft, finish]);
 
   useEffect(() => {
-    if (phase !== "playing" || subPhase !== "fill") return;
+    if (phase !== "playing") return;
     const allFilled =
       target.length > 0 && target.every((p) => filled[p.id] !== undefined);
     if (allFilled) finish();
-  }, [filled, target, phase, subPhase, finish]);
+  }, [filled, target, phase, finish]);
 
   function placePetal(id, color) {
     if (color !== target.find((p) => p.id === id)?.color) {
@@ -117,26 +101,22 @@ export default function Pookalam({ onFinish }) {
 
   const size = 380;
   const center = size / 2;
-  const memorizing = subPhase === "memorize";
 
   return (
     <div className="game-screen">
       <div className="game-hud">
         <span>Pookalam Rush</span>
-        <span>
-          {phase === "playing" && memorizing && `Memorize: ${memorizeLeft}s`}
-          {phase === "playing" && !memorizing && `Time: ${timeLeft}s · Misses: ${misses}`}
-        </span>
+        <span>{phase === "playing" && `Time: ${timeLeft}s · Misses: ${misses}`}</span>
       </div>
 
       {phase === "ready" && (
         <div className="game-overlay">
           <h2>Pookalam Rush</h2>
           <p>
-            The full pattern is revealed for {MEMORIZE_TIME} seconds — memorize
-            which color goes where. Then it goes blank and you rebuild it from
-            memory: pick a color, tap a petal to fill it. Wrong guesses cost
-            you {WRONG_PENALTY} points each.
+            Each petal shows a light tint of its true color — pick a color
+            from the palette, then tap a petal to fill it in fully. Wrong
+            guesses cost you {WRONG_PENALTY} points each. Fill every petal
+            before time runs out.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
@@ -153,35 +133,34 @@ export default function Pookalam({ onFinish }) {
                 const x = center + p.radius * Math.cos(p.angle);
                 const y = center + p.radius * Math.sin(p.angle);
                 const isFilled = filled[p.id] !== undefined;
-                const displayColor = memorizing ? p.color : isFilled ? filled[p.id] : "#f3e6c8";
                 return (
                   <circle
                     key={p.id}
                     cx={x}
                     cy={y}
                     r={16}
-                    fill={displayColor}
-                    stroke="#d8c9a3"
-                    strokeWidth={memorizing || isFilled ? 0 : 2}
-                    onClick={() => !memorizing && placePetal(p.id, selectedColor)}
-                    style={{ cursor: memorizing ? "default" : "pointer" }}
+                    fill={isFilled ? filled[p.id] : p.color}
+                    fillOpacity={isFilled ? 1 : 0.3}
+                    stroke={p.color}
+                    strokeWidth={isFilled ? 0 : 1.5}
+                    strokeOpacity={isFilled ? 0 : 0.7}
+                    onClick={() => placePetal(p.id, selectedColor)}
+                    style={{ cursor: "pointer" }}
                   />
                 );
               })}
             </svg>
           </div>
-          {!memorizing && (
-            <div className="color-palette">
-              {paletteOrder.map((c) => (
-                <button
-                  key={c}
-                  className={`color-swatch ${selectedColor === c ? "selected" : ""}`}
-                  onClick={() => setSelectedColor(c)}
-                  style={{ background: c }}
-                />
-              ))}
-            </div>
-          )}
+          <div className="color-palette">
+            {paletteOrder.map((c) => (
+              <button
+                key={c}
+                className={`color-swatch ${selectedColor === c ? "selected" : ""}`}
+                onClick={() => setSelectedColor(c)}
+                style={{ background: c }}
+              />
+            ))}
+          </div>
         </>
       )}
 
