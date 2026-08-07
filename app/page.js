@@ -91,10 +91,7 @@ export default function LoginPage() {
         </div>
         <span className="eyebrow">{COMPANY_NAME.toUpperCase()}</span>
         <h1>{EVENT_NAME}</h1>
-        <p className="sub">
-          {COMPANY_NAME}'s Onam + 14th-anniversary celebration. Pick your
-          name and enter the event PIN to join.
-        </p>
+        <p className="sub">Pick your name and enter the event PIN to join.</p>
 
         <form onSubmit={handleSubmit}>
           <div className="field name-combobox" ref={comboRef}>

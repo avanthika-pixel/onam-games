@@ -7,10 +7,11 @@ const MAX_ROUNDS = 20;
 const LIT_MS = 480;
 const GAP_MS = 220;
 const TAP_FLASH_MS = 200;
+const NEXT_ROUND_DELAY_MS = 2000;
 
 export default function PookalamEcho({ onFinish }) {
   const [phase, setPhase] = useState("ready");
-  const [subPhase, setSubPhase] = useState("showing"); // "showing" | "waiting"
+  const [subPhase, setSubPhase] = useState("showing"); // "showing" | "waiting" | "pause"
   const [round, setRound] = useState(1);
   const [correctTaps, setCorrectTaps] = useState(0);
   const [activePad, setActivePad] = useState(null);
@@ -73,6 +74,13 @@ export default function PookalamEcho({ onFinish }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, subPhase, round]);
 
+  // Breathing room after a correct round before the next sequence starts.
+  useEffect(() => {
+    if (phase !== "playing" || subPhase !== "pause") return;
+    const t = setTimeout(() => setSubPhase("showing"), NEXT_ROUND_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [phase, subPhase]);
+
   useEffect(() => {
     return () => {
       cancelRef.current = true;
@@ -99,7 +107,7 @@ export default function PookalamEcho({ onFinish }) {
         sequenceRef.current = nextSeq;
         inputIndexRef.current = 0;
         setRound(nextSeq.length);
-        setSubPhase("showing");
+        setSubPhase("pause");
       }
     } else {
       finish(false);
@@ -118,8 +126,14 @@ export default function PookalamEcho({ onFinish }) {
       </div>
 
       {phase === "playing" && (
-        <div className={`echo-status ${subPhase === "showing" ? "echo-status-watch" : "echo-status-turn"}`}>
-          {subPhase === "showing" ? "👀 Watch the sequence…" : "👆 Your turn — repeat it back"}
+        <div
+          className={`echo-status ${
+            subPhase === "waiting" ? "echo-status-turn" : "echo-status-watch"
+          }`}
+        >
+          {subPhase === "showing" && "👀 Watch the sequence…"}
+          {subPhase === "waiting" && "👆 Your turn — repeat it back"}
+          {subPhase === "pause" && "✅ Nice! Get ready for the next one…"}
         </div>
       )}
 
@@ -144,8 +158,8 @@ export default function PookalamEcho({ onFinish }) {
           style={{
             "--game-w": `${size}px`,
             "--game-ratio": 1,
-            opacity: subPhase === "showing" ? 0.55 : 1,
-            pointerEvents: subPhase === "showing" ? "none" : "auto",
+            opacity: subPhase === "waiting" ? 1 : 0.55,
+            pointerEvents: subPhase === "waiting" ? "auto" : "none",
             transition: "opacity 0.2s ease",
           }}
         >
