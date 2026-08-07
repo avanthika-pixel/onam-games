@@ -9,6 +9,10 @@ const GAP_MS = 220;
 const TAP_FLASH_MS = 200;
 const NEXT_ROUND_DELAY_MS = 2000;
 
+function randomSequence(length) {
+  return Array.from({ length }, () => Math.floor(Math.random() * PAD_COLORS.length));
+}
+
 export default function PookalamEcho({ onFinish }) {
   const [phase, setPhase] = useState("ready");
   const [subPhase, setSubPhase] = useState("showing"); // "showing" | "waiting" | "pause"
@@ -31,7 +35,7 @@ export default function PookalamEcho({ onFinish }) {
 
   const start = useCallback(() => {
     cancelRef.current = false;
-    sequenceRef.current = [Math.floor(Math.random() * PAD_COLORS.length)];
+    sequenceRef.current = randomSequence(1);
     inputIndexRef.current = 0;
     correctTapsRef.current = 0;
     setCorrectTaps(0);
@@ -103,7 +107,10 @@ export default function PookalamEcho({ onFinish }) {
           finish(true);
           return;
         }
-        const nextSeq = [...seq, Math.floor(Math.random() * PAD_COLORS.length)];
+        // Each round is a brand new random order, not the previous
+        // sequence with one more tacked on — round N is always a fresh
+        // shuffle of N taps, independent of round N-1.
+        const nextSeq = randomSequence(seq.length + 1);
         sequenceRef.current = nextSeq;
         inputIndexRef.current = 0;
         setRound(nextSeq.length);
@@ -158,7 +165,7 @@ export default function PookalamEcho({ onFinish }) {
           style={{
             "--game-w": `${size}px`,
             "--game-ratio": 1,
-            opacity: subPhase === "waiting" ? 1 : 0.55,
+            opacity: subPhase === "pause" ? 0.55 : 1,
             pointerEvents: subPhase === "waiting" ? "auto" : "none",
             transition: "opacity 0.2s ease",
           }}
