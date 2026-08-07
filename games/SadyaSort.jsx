@@ -3,32 +3,25 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const ITEMS = [
-  { id: "rice", label: "Rice", emoji: "🍚" },
-  { id: "payasam", label: "Payasam", emoji: "🍮" },
-  { id: "pickle", label: "Pickle", emoji: "🥭" },
-  { id: "banana", label: "Banana chips", emoji: "🍌" },
-  { id: "curry", label: "Curry", emoji: "🍛" },
-  { id: "papadam", label: "Papadam", emoji: "🫓" },
-  { id: "sambar", label: "Sambar", emoji: "🍲" },
-  { id: "thoran", label: "Thoran", emoji: "🥬" },
-  { id: "olan", label: "Olan", emoji: "🎃" },
-  { id: "avial", label: "Avial", emoji: "🥗" },
-  { id: "rasam", label: "Rasam", emoji: "🍵" },
-  { id: "pachadi", label: "Pachadi", emoji: "🥣" },
-  { id: "puliinji", label: "Puli Inji", emoji: "🫚" },
-  { id: "naranga", label: "Naranga Achar", emoji: "🍋" },
-  { id: "sharkara", label: "Sharkara Varatti", emoji: "🍯" },
+  { id: "avial", label: "Avial", image: "/sadya/avial.png" },
+  { id: "banana", label: "Banana Bunch", image: "/sadya/banana-bunch.jpg" },
+  { id: "chips", label: "Chips", image: "/sadya/chips.jpg" },
+  { id: "curryleaves", label: "Curry Leaves", image: "/sadya/curry-leaves.jpg" },
+  { id: "pickle", label: "Pickle", image: "/sadya/pickle.jpg" },
+  { id: "rice", label: "Rice", image: "/sadya/rice.jpg" },
+  { id: "salt", label: "Salt", image: "/sadya/salt.jpg" },
+  { id: "sambar", label: "Sambar", image: "/sadya/sambar.png" },
 ];
 
-const ROUND_TIME = 150;
+const ROUND_TIME = 80;
 const WRONG_PENALTY = 4;
 const MATCH_DELAY_MS = 450;
 const MISMATCH_DELAY_MS = 800;
 
 function buildDeck() {
   const deck = ITEMS.flatMap((item) => [
-    { uid: `${item.id}-a`, itemId: item.id, emoji: item.emoji, label: item.label },
-    { uid: `${item.id}-b`, itemId: item.id, emoji: item.emoji, label: item.label },
+    { uid: `${item.id}-a`, itemId: item.id, image: item.image, label: item.label },
+    { uid: `${item.id}-b`, itemId: item.id, image: item.image, label: item.label },
   ]);
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -150,7 +143,11 @@ export default function SadyaSort({ onFinish }) {
                 }`}
                 onClick={() => flipTile(tile)}
               >
-                {faceUp ? tile.emoji : "🌿"}
+                {faceUp ? (
+                  <img src={tile.image} alt={tile.label} className="memory-tile-img" />
+                ) : (
+                  "🌿"
+                )}
               </button>
             );
           })}
@@ -173,7 +170,8 @@ export default function SadyaSort({ onFinish }) {
                 <div className="sadya-review-chips">
                   {stillHidden.map((item) => (
                     <span className="sadya-review-chip" key={item.id}>
-                      {item.emoji} {item.label}
+                      <img src={item.image} alt="" className="sadya-review-chip-img" />
+                      {item.label}
                     </span>
                   ))}
                 </div>

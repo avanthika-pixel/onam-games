@@ -114,8 +114,14 @@ export default function PookalamEcho({ onFinish }) {
     <div className="game-screen">
       <div className="game-hud">
         <span>Pookalam Echo</span>
-        <span>{phase === "playing" ? `Round: ${round}${subPhase === "showing" ? " (watch)" : " (your turn)"}` : ""}</span>
+        <span>{phase === "playing" ? `Round: ${round}` : ""}</span>
       </div>
+
+      {phase === "playing" && (
+        <div className={`echo-status ${subPhase === "showing" ? "echo-status-watch" : "echo-status-turn"}`}>
+          {subPhase === "showing" ? "👀 Watch the sequence…" : "👆 Your turn — repeat it back"}
+        </div>
+      )}
 
       {phase === "ready" && (
         <div className="game-overlay">
@@ -133,7 +139,16 @@ export default function PookalamEcho({ onFinish }) {
       )}
 
       {phase === "playing" && (
-        <div className="game-canvas-wrap" style={{ "--game-w": `${size}px`, "--game-ratio": 1 }}>
+        <div
+          className="game-canvas-wrap"
+          style={{
+            "--game-w": `${size}px`,
+            "--game-ratio": 1,
+            opacity: subPhase === "showing" ? 0.55 : 1,
+            pointerEvents: subPhase === "showing" ? "none" : "auto",
+            transition: "opacity 0.2s ease",
+          }}
+        >
           <svg viewBox={`0 0 ${size} ${size}`}>
             <circle cx={center} cy={center} r={20} fill="#e8a93b" />
             {PAD_COLORS.map((color, i) => {

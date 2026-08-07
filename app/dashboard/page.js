@@ -168,6 +168,12 @@ export default function DashboardPage() {
           </>
         )}
 
+        {activeGame && (
+          <button className="leave-game-btn" onClick={() => setActiveGame(null)}>
+            ← Leave game
+          </button>
+        )}
+
         {activeGame === "boat" && (
           <BoatRace onFinish={(score) => handleFinish("boat", score)} />
         )}
