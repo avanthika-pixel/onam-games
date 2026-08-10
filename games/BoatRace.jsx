@@ -7,13 +7,14 @@ const H = 520;
 const LANES = 3;
 const LANE_W = W / LANES;
 const BOAT_H = 46;
-const GAME_LEN_MS = 30000;
 
 export default function BoatRace({ onFinish }) {
   const canvasRef = useRef(null);
   const [phase, setPhase] = useState("ready"); // ready | playing | done
   const [finalScore, setFinalScore] = useState(0);
+  const [liveScore, setLiveScore] = useState(0);
   const stateRef = useRef(null);
+  const lastShownRef = useRef(0);
 
   function resetState() {
     stateRef.current = {
@@ -26,6 +27,8 @@ export default function BoatRace({ onFinish }) {
       score: 0,
       alive: true,
     };
+    lastShownRef.current = 0;
+    setLiveScore(0);
   }
 
   function start() {
@@ -69,9 +72,9 @@ export default function BoatRace({ onFinish }) {
           }
         });
 
-        if (s.elapsed >= GAME_LEN_MS) {
-          s.alive = false;
-          s.won = true;
+        if (s.score !== lastShownRef.current) {
+          lastShownRef.current = s.score;
+          setLiveScore(s.score);
         }
 
         if (!s.alive) {
@@ -136,7 +139,7 @@ export default function BoatRace({ onFinish }) {
     <div className="game-screen">
       <div className="game-hud">
         <span>Vallam Kali Dash</span>
-        <span>{phase === "playing" ? `Score: ${stateRef.current?.score || 0}` : ""}</span>
+        <span>{phase === "playing" ? `Score: ${liveScore}` : ""}</span>
       </div>
       <div className="game-canvas-wrap" style={{ "--game-w": `${W}px`, "--game-ratio": W / H }}>
         <canvas
@@ -154,9 +157,10 @@ export default function BoatRace({ onFinish }) {
         <div className="game-overlay">
           <h2>Vallam Kali Dash</h2>
           <p>
-            Tap left/right side of the boat lane (or arrow keys) to steer
-            between lanes and dodge the rocks. Survive 30 seconds for max
-            score.
+            An endless runner — there's no finish line. Tap left/right side
+            of the boat lane (or arrow keys) to steer between lanes and dodge
+            the rocks for as long as you can. It only gets faster the longer
+            you survive.
           </p>
           <button className="btn btn-primary" onClick={start}>
             Start
@@ -165,7 +169,7 @@ export default function BoatRace({ onFinish }) {
       )}
       {phase === "done" && (
         <div className="game-overlay">
-          <h2>{stateRef.current?.won ? "You made it!" : "Boat capsized!"}</h2>
+          <h2>Boat capsized!</h2>
           <p>Score: {finalScore}</p>
           <button className="btn btn-primary" onClick={start} style={{ marginRight: 10 }}>
             Play again
