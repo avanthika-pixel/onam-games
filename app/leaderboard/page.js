@@ -19,6 +19,7 @@ export default function LeaderboardPage() {
   const router = useRouter();
   const [session, setSessionState] = useState(undefined);
   const [byGame, setByGame] = useState({});
+  const [playerTotals, setPlayerTotals] = useState([]);
   const [selectedGame, setSelectedGame] = useState(GAMES[0].id);
 
   useEffect(() => {
@@ -36,7 +37,10 @@ export default function LeaderboardPage() {
     async function load() {
       const res = await fetch("/api/leaderboard");
       const data = await res.json();
-      if (!cancelled && data.ok) setByGame(data.byGame);
+      if (!cancelled && data.ok) {
+        setByGame(data.byGame);
+        setPlayerTotals(data.playerTotals || []);
+      }
     }
 
     load();
@@ -56,12 +60,65 @@ export default function LeaderboardPage() {
   const podium = rows.slice(0, 3);
   const rest = rows.slice(3);
 
+  const totalPodium = playerTotals.slice(0, 3);
+  const totalRest = playerTotals.slice(3);
+
   return (
     <div className="shell shell--arcade">
       <TopBar session={session} />
       <div className="content">
         <h2 className="section-title">Leaderboard — Level 14</h2>
         <p className="section-sub">Live — updates automatically every few seconds.</p>
+
+        <div className="lb-panel">
+          <h3 className="game-lb-title" style={{ color: "var(--orange)" }}>
+            Overall — Total Score Across All Games
+          </h3>
+
+          {totalPodium.length === 0 ? (
+            <p className="lb-empty">No scores yet — be the first to play.</p>
+          ) : (
+            <div className="podium">
+              {totalPodium.map((r, i) => (
+                <div className={`podium-spot podium-${i + 1}`} key={r.player_name}>
+                  {i === 0 && <div className="podium-crown">👑</div>}
+                  <div className="avatar">{initials(r.player_name)}</div>
+                  <div className="podium-medal">{MEDALS[i]}</div>
+                  <div className="podium-name">{r.player_name}</div>
+                  <div className="podium-score">{r.total}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {totalRest.length > 0 && (
+            <div className="lb-table-wrap">
+              <table className="lb-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {totalRest.map((r, i) => (
+                    <tr key={r.player_name}>
+                      <td>{i + 4}</td>
+                      <td>
+                        <div className="lb-row-player">
+                          <div className="avatar avatar-sm">{initials(r.player_name)}</div>
+                          {r.player_name}
+                        </div>
+                      </td>
+                      <td className="score">{r.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
         <div className="arcade-tabs">
           {GAMES.map((g) => (
