@@ -40,6 +40,8 @@ export default function DashboardPage() {
   const [session, setSessionState] = useState(undefined); // undefined = loading, null = signed out
   const [best, setBest] = useState({});
   const [activeGame, setActiveGame] = useState(null);
+  const [playToken, setPlayToken] = useState(null);
+  const [starting, setStarting] = useState(null);
   const [paused, setPausedState] = useState(false);
   const over = isEventOver() || paused;
 
@@ -79,12 +81,31 @@ export default function DashboardPage() {
     };
   }, []);
 
+  async function handlePlay(gameId) {
+    setStarting(gameId);
+    try {
+      const res = await fetch("/api/play/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: session.name, gameId }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPlayToken(data.token);
+        setActiveGame(gameId);
+      }
+    } finally {
+      setStarting(null);
+    }
+  }
+
   async function handleFinish(gameId, score) {
     await fetch("/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: session.name, gameId, score }),
+      body: JSON.stringify({ name: session.name, gameId, score, token: playToken }),
     });
+    setPlayToken(null);
     await refreshBest(session);
     setActiveGame(null);
   }
@@ -153,10 +174,10 @@ export default function DashboardPage() {
                   <div className="best">Your best: {best[g.id] || 0}</div>
                   <button
                     className="btn-play"
-                    disabled={over}
-                    onClick={() => setActiveGame(g.id)}
+                    disabled={over || starting === g.id}
+                    onClick={() => handlePlay(g.id)}
                   >
-                    {isEventOver() ? "Closed" : paused ? "Paused" : "Play"}
+                    {isEventOver() ? "Closed" : paused ? "Paused" : starting === g.id ? "Loading…" : "Play"}
                   </button>
                 </div>
               ))}
@@ -169,7 +190,13 @@ export default function DashboardPage() {
         )}
 
         {activeGame && (
-          <button className="leave-game-btn" onClick={() => setActiveGame(null)}>
+          <button
+            className="leave-game-btn"
+            onClick={() => {
+              setPlayToken(null);
+              setActiveGame(null);
+            }}
+          >
             ← Leave game
           </button>
         )}
