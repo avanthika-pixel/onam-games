@@ -8,6 +8,7 @@ import { GAMES, isEventOver } from "../../../lib/config";
 import { normalizeName } from "../../../lib/name";
 
 const GAME_IDS = new Set(GAMES.map((g) => g.id));
+const MAX_SCORE = Object.fromEntries(GAMES.map((g) => [g.id, g.maxScore]));
 
 export async function GET(request) {
   noStore();
@@ -34,6 +35,13 @@ export async function POST(request) {
 
   if (!name || !GAME_IDS.has(gameId) || !Number.isFinite(score) || score < 0) {
     return NextResponse.json({ ok: false, error: "invalid" }, { status: 400 });
+  }
+
+  // Sanity ceiling per game — blocks someone from just POSTing an
+  // arbitrary huge number instead of actually playing. Set well above
+  // what real play can reach (see lib/config.js).
+  if (score > MAX_SCORE[gameId]) {
+    return NextResponse.json({ ok: false, error: "score_too_high" }, { status: 400 });
   }
 
   await submitScore({ playerName: name, gameId, score: Math.floor(score) });
