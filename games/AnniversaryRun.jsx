@@ -58,22 +58,32 @@ export default function AnniversaryRun({ onFinish }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let raf;
+    let last = performance.now();
 
-    function loop() {
+    function loop(now) {
+      // Real elapsed time since the last frame, not an assumed 16ms/frame
+      // (60fps) — without this, the game runs faster on higher-refresh-rate
+      // displays (120Hz phones/Macs fire requestAnimationFrame twice as
+      // often as a 60Hz display), which is exactly why the same run felt
+      // different-speed across devices.
+      const dt = Math.min(now - last, 40);
+      last = now;
+      const step = dt / 16;
+
       const s = stateRef.current;
       if (s.alive) {
-        s.distance += s.speed;
+        s.distance += s.speed * step;
         s.speed = s.baseSpeed + s.distance / s.rampDivisor;
 
-        s.vy += 0.6;
-        s.y += s.vy;
+        s.vy += 0.6 * step;
+        s.y += s.vy * step;
         if (s.y > GROUND_Y) {
           s.y = GROUND_Y;
           s.vy = 0;
           s.jumping = false;
         }
 
-        s.spawnTimer -= 16;
+        s.spawnTimer -= dt;
         if (s.spawnTimer <= 0) {
           // Randomized size and gap so obstacles are never evenly spaced or
           // identical between — or within — runs.
@@ -84,17 +94,17 @@ export default function AnniversaryRun({ onFinish }) {
           const jitter = (Math.random() - 0.5) * 320;
           s.spawnTimer = Math.max(base + jitter, 380);
         }
-        s.obstacles.forEach((o) => (o.x -= s.speed));
+        s.obstacles.forEach((o) => (o.x -= s.speed * step));
         s.obstacles = s.obstacles.filter((o) => o.x > -40);
 
-        s.candleTimer -= 16;
+        s.candleTimer -= dt;
         if (s.candleTimer <= 0) {
           // Candles never run out — this is an endless runner, not a
           // "collect 14 and stop" game. 14 is just the anniversary theme.
           s.candles.push({ x: W + 20, y: GROUND_Y - 40 - Math.random() * 90 });
           s.candleTimer = s.candleGapBase + (Math.random() - 0.5) * 300;
         }
-        s.candles.forEach((c) => (c.x -= s.speed));
+        s.candles.forEach((c) => (c.x -= s.speed * step));
         s.candles = s.candles.filter((c) => c.x > -30);
 
         const runnerX = 60;

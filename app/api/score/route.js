@@ -75,7 +75,6 @@ function sadyaMinMs(score) {
 
 const FLAT_MIN_ELAPSED_MS = {
   pookalam: 3000,
-  anniversary: 3000,
 };
 
 function minElapsedMs(gameId, score) {
@@ -84,6 +83,12 @@ function minElapsedMs(gameId, score) {
   if (gameId === "lootswipe") return lootSwipeMinMs(score);
   if (gameId === "sadya") return sadyaMinMs(score);
   if (gameId === "bugsquash") return Math.max(3000, score * 20);
+  // Anniversary's score mixes distance and candles, with per-run randomized
+  // speed constants the server never sees — an exact derivation like
+  // boat's isn't possible. ~40ms/point is close to the fastest either path
+  // (distance or candles) could theoretically produce a point, biased
+  // permissive to avoid rejecting genuine fast/lucky runs.
+  if (gameId === "anniversary") return Math.max(3000, score * 40);
   return FLAT_MIN_ELAPSED_MS[gameId] ?? 2000;
 }
 
