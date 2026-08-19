@@ -10,23 +10,80 @@ import { normalizeName } from "../../../lib/name";
 const GAME_IDS = new Set(GAMES.map((g) => g.id));
 const MAX_SCORE = Object.fromEntries(GAMES.map((g) => [g.id, g.maxScore]));
 
-// Loose, generous minimum real-world time a genuine play session must have
-// taken to produce a given score — not exact game-by-game timing, just
-// enough to reject a token being redeemed the instant it's issued instead
-// of after actually playing. Boat's score formula is exactly
-// floor(elapsed_ms / 100), so its floor is derived precisely rather than
-// guessed; the rest use flat, easily-cleared floors.
+// Minimum real-world time a genuine play session must have taken to
+// produce a given score. Derived from each game's own client-side timing
+// constants wherever the game's structure makes that possible — a flat
+// "few seconds" floor turned out to be nowhere near enough for games with
+// forced playback/pause sequences (see pookalamecho below, which was
+// exploited: its true minimum for a max score is ~185s, not 3s).
+
+// Pookalam Echo: round R's full sequence (R pads x 700ms each) plays in
+// full before any tapping is possible, and a 2000ms pause follows every
+// completed round. So reaching `correctTaps` total correct taps requires
+// having played through every round up to and including the one they were
+// on when they stopped — there's no faster path, since rounds can't be
+// skipped or repeated.
+function pookalamEchoMinMs(score) {
+  const ECHO_MAX_ROUNDS = 20; // must match MAX_ROUNDS in games/PookalamEcho.jsx
+  const correctTaps = score / 5;
+  let completedRounds = 0;
+  while (
+    ((completedRounds + 1) * (completedRounds + 2)) / 2 <= correctTaps &&
+    completedRounds < ECHO_MAX_ROUNDS
+  ) {
+    completedRounds += 1;
+  }
+
+  let playbackMs = 0;
+  let pausesMs;
+  if (completedRounds >= ECHO_MAX_ROUNDS) {
+    // Won outright by finishing round MAX_ROUNDS — the game ends
+    // immediately, so no further round ever plays and the pause after
+    // the final round never happens either.
+    for (let k = 1; k <= ECHO_MAX_ROUNDS; k++) playbackMs += k * 700;
+    pausesMs = (ECHO_MAX_ROUNDS - 1) * 2000;
+  } else {
+    const roundBeingPlayed = completedRounds + 1;
+    for (let k = 1; k <= roundBeingPlayed; k++) playbackMs += k * 700;
+    pausesMs = completedRounds * 2000;
+  }
+  return playbackMs + pausesMs;
+}
+
+// Loot Swipe: each swipe is gated by a 380ms cooldown, and points per
+// correct swipe scale with streak (10 + min(streak,10)*2). Find the fewest
+// correct swipes that could reach `score` via the fastest-growing streak
+// path, then require at least that many cooldown intervals to have passed.
+function lootSwipeMinMs(score) {
+  let swipes;
+  if (score <= 190) {
+    swipes = Math.ceil((-9 + Math.sqrt(81 + 4 * score)) / 2);
+  } else {
+    swipes = 10 + Math.ceil((score - 190) / 30);
+  }
+  return Math.max(0, swipes) * 380;
+}
+
+// Sadya Sort: every successful match forces a 450ms lock before the next
+// flip is accepted. Best case for an attacker is zero wrong flips and the
+// full time bonus, so the fewest matches that could explain a given score
+// is (score - maxTimeBonus) / pointsPerMatch.
+function sadyaMinMs(score) {
+  const matches = Math.max(0, Math.ceil((score - 50) / 15));
+  return matches * 450;
+}
+
 const FLAT_MIN_ELAPSED_MS = {
   pookalam: 3000,
   anniversary: 3000,
-  sadya: 5000,
-  lootswipe: 3000,
-  pookalamecho: 3000,
-  bugsquash: 3000,
 };
 
 function minElapsedMs(gameId, score) {
   if (gameId === "boat") return Math.max(2000, score * 100 * 0.85);
+  if (gameId === "pookalamecho") return pookalamEchoMinMs(score);
+  if (gameId === "lootswipe") return lootSwipeMinMs(score);
+  if (gameId === "sadya") return sadyaMinMs(score);
+  if (gameId === "bugsquash") return Math.max(3000, score * 20);
   return FLAT_MIN_ELAPSED_MS[gameId] ?? 2000;
 }
 
